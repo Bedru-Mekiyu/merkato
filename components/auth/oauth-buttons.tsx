@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { oauthEnabled } from "@/lib/features";
+import { safeNextPath } from "@/lib/navigation";
 
 interface Props {
   next?: string;
@@ -10,18 +12,20 @@ interface Props {
 
 export function OAuthButtons({ next }: Props) {
   const supabase = createClient();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState<"google" | "github" | null>(null);
 
   // Hide entirely when providers aren't configured — clicking would only
   // produce a Supabase "provider not enabled" error.
   if (!oauthEnabled()) return null;
 
+  const nextPath = safeNextPath(next ?? searchParams.get("next"));
   const googleOn = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === "true";
   const githubOn = process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true";
 
   const redirectTo =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`
+      typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
       : "/auth/callback";
 
   async function signInWith(provider: "google" | "github") {

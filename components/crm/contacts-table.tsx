@@ -4,16 +4,22 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Trash2, Users } from "lucide-react";
 import { deleteContact } from "@/app/(app)/crm/actions";
+import { useToast } from "@/components/ui/toast";
 import type { Contact } from "@/types/database";
 
 export function ContactsTable({ contacts }: { contacts: Contact[] }) {
   const router = useRouter();
+  const { report } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
+    const contact = contacts.find((c) => c.id === id);
+    if (!window.confirm(`Delete "${contact?.full_name ?? "this contact"}"?`)) return;
+
     setDeletingId(id);
-    await deleteContact(id);
+    const result = await deleteContact(id);
     setDeletingId(null);
+    if (!report(result, "Contact deleted")) return;
     router.refresh();
   }
 
@@ -32,8 +38,8 @@ export function ContactsTable({ contacts }: { contacts: Contact[] }) {
   }
 
   return (
-    <div className="border border-border rounded-md bg-surface overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="border border-border rounded-md bg-surface overflow-x-auto">
+      <table className="w-full min-w-[40rem] text-sm">
         <thead>
           <tr className="border-b border-border text-left">
             <th className="px-4 py-2.5 text-xs font-medium text-muted">Name</th>

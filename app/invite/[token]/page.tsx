@@ -10,12 +10,16 @@ export default async function InvitePage({
   const { token } = await params;
   const supabase = await createClient();
 
-  // Look up the invitation (no RLS bypass needed — we query by token)
-  const { data: invitation } = await supabase
-    .from("invitations")
-    .select("email, role, expires_at, accepted_at, organizations(name, slug)")
-    .eq("token", token)
-    .single();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(`/signup?next=/invite/${token}`);
+  }
+
+  // The token lookup is intentionally exposed only to authenticated users.
+  const { data: invitations } = await supabase.rpc("get_invitation_by_token", {
+    p_token: token,
+  });
+  const invitation = invitations?.[0];
 
   // Token doesn't exist at all
   if (!invitation) {
@@ -32,16 +36,6 @@ export default async function InvitePage({
     return <InviteError message="This invitation has expired. Ask the workspace owner to send a new one." />;
   }
 
-  const org = invitation.organizations;
-
-  // Check if user is logged in
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    // Not logged in — redirect to signup with ?next= so they land here after
-    redirect(`/signup?next=/invite/${token}`);
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
@@ -53,12 +47,12 @@ export default async function InvitePage({
           </div>
           <h1 className="text-2xl font-bold text-white mb-1.5">You&apos;re invited</h1>
           <p className="text-sm text-muted">
-            Join <strong className="text-white">{org?.name ?? "a workspace"}</strong> on Merkato
+            Join <strong className="text-white">{invitation.organization_name}</strong> on Merkato
             as a <span className="capitalize text-white">{invitation.role}</span>.
           </p>
         </div>
 
-        <AcceptInviteClient token={token} orgSlug={org?.slug ?? ""} />
+        <AcceptInviteClient token={token} orgSlug={invitation.organization_slug} />
       </div>
     </div>
   );

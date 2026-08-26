@@ -79,8 +79,21 @@ export function MessageThread({
       },
     ]);
 
-    await sendMessage(channelId, formData);
+    const result = await sendMessage(channelId, formData);
     setSending(false);
+
+    if (result?.error) {
+      setMessages((prev) => prev.filter((message) => message.id !== tempId));
+      setDraft(body);
+      return;
+    }
+
+    if (result.message) {
+      setMessages((prev) => [
+        ...prev.filter((message) => message.id !== tempId),
+        result.message as Message,
+      ]);
+    }
   }
 
   return (

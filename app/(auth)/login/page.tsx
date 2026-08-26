@@ -33,7 +33,9 @@ export default function LoginPage() {
 
           {oauthEnabled() && (
             <>
-              <OAuthButtons />
+              <Suspense fallback={null}>
+                <OAuthButtons />
+              </Suspense>
 
               <div className="flex items-center gap-3 my-6">
                 <div className="flex-1 h-px bg-border" />

@@ -6,6 +6,7 @@ import { CheckSquare, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TASK_STATUSES, type ProjectTask, type TaskStatus } from "@/types/database";
 import { updateTaskStatus } from "@/app/(app)/projects/actions";
+import { useToast } from "@/components/ui/toast";
 
 const priorityColor: Record<string, string> = {
   low: "bg-white/10 text-white/60",
@@ -24,6 +25,7 @@ export function TaskBoard({
   onSelectTask: (id: string) => void;
 }) {
   const router = useRouter();
+  const { report } = useToast();
   const [, startTransition] = useTransition();
   const [dragOverStatus, setDragOverStatus] = useState<TaskStatus | null>(null);
   const [localTasks, setLocalTasks] = useState(tasks);
@@ -32,15 +34,24 @@ export function TaskBoard({
     setLocalTasks(tasks);
   }, [tasks]);
 
-  function handleDrop(status: TaskStatus, taskId: string) {
-    setDragOverStatus(null);
+  function moveTask(taskId: string, status: TaskStatus) {
+    const previous = localTasks;
     setLocalTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status } : t))
     );
     startTransition(async () => {
-      await updateTaskStatus(taskId, status, projectId);
+      const result = await updateTaskStatus(taskId, status, projectId);
+      if (!report(result)) {
+        setLocalTasks(previous);
+        return;
+      }
       router.refresh();
     });
+  }
+
+  function handleDrop(status: TaskStatus, taskId: string) {
+    setDragOverStatus(null);
+    moveTask(taskId, status);
   }
 
   return (
@@ -88,7 +99,16 @@ export function TaskBoard({
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData("taskId", task.id)}
                     onClick={() => onSelectTask(task.id)}
-                    className="rounded-sm border border-border bg-surface p-3 cursor-pointer hover:border-white/20 transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSelectTask(task.id);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Task: ${task.title}`}
+                    className="rounded-sm border border-border bg-surface p-3 cursor-pointer hover:border-white/20 focus-visible:ring-2 focus-visible:ring-accent/40 outline-none transition-colors"
                   >
                     <p className="text-sm font-medium text-white leading-snug mb-2">
                       {task.title}
@@ -114,6 +134,24 @@ export function TaskBoard({
                         )}
                       </div>
                     </div>
+
+                    {/* Keyboard/touch accessible alternative to drag-and-drop */}
+                    <label className="sr-only" htmlFor={`task-status-${task.id}`}>
+                      Move {task.title} to another status
+                    </label>
+                    <select
+                      id={`task-status-${task.id}`}
+                      value={task.status}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => moveTask(task.id, e.target.value as TaskStatus)}
+                      className="mt-2.5 w-full h-8 px-2 rounded-sm bg-background border border-border text-xs text-white/80 hover:border-white/20 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition-all"
+                    >
+                      {TASK_STATUSES.map((s) => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 );
               })}

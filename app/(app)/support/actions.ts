@@ -248,22 +248,14 @@ export async function customerReply(ticketId: string, formData: FormData) {
   const body = String(formData.get("body") ?? "").trim();
   if (!body) return { error: "Message cannot be empty." };
 
-  const { error } = await supabase.from("ticket_messages").insert({
-    organization_id: ctx.organization.id,
-    ticket_id: ticketId,
-    body,
-    is_internal_note: false,
-    created_by: ctx.userId,
+  const { data, error } = await supabase.rpc("customer_reply", {
+    p_ticket_id: ticketId,
+    p_body: body,
   });
 
   if (error) return { error: error.message };
-
-  // A customer reply on a resolved/pending ticket should reopen it.
-  await supabase
-    .from("support_tickets")
-    .update({ status: "open" })
-    .eq("id", ticketId)
-    .in("status", ["pending", "resolved"]);
+  const result = data as { success?: boolean; error?: string };
+  if (result.error) return { error: result.error };
 
   revalidatePath(`/portal/${ctx.organization.slug}/tickets/${ticketId}`);
   return { success: true };

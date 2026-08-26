@@ -258,8 +258,8 @@ export function DocumentBrowser({
             <p className="text-xs text-faint mt-1">Upload files or drag them here.</p>
           </div>
         ) : currentDocs.length === 0 ? null : (
-          <div className="border border-border rounded-md bg-surface overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="border border-border rounded-md bg-surface overflow-x-auto">
+            <table className="w-full min-w-[40rem] text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="px-4 py-2.5 text-xs font-medium text-muted">Name</th>

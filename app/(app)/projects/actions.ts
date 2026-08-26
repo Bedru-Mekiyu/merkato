@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireOrgContext } from "@/lib/org-context";
+import { requireStaffContext } from "@/lib/org-context";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notify";
 import { sendEmail, appUrl } from "@/lib/email/client";
@@ -13,7 +13,7 @@ import type { ProjectStatus, TaskStatus, TaskPriority } from "@/types/database";
 // Projects
 // ---------------------------------------------------------------------------
 export async function createProject(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -49,6 +49,7 @@ export async function createProject(formData: FormData) {
 }
 
 export async function updateProjectStatus(projectId: string, status: ProjectStatus) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase
     .from("projects")
@@ -61,6 +62,7 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
 }
 
 export async function deleteProject(id: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("projects").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -72,7 +74,7 @@ export async function deleteProject(id: string) {
 // Tasks
 // ---------------------------------------------------------------------------
 export async function createTask(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const project_id = String(formData.get("project_id") ?? "").trim();
@@ -140,7 +142,7 @@ export async function createTask(formData: FormData) {
 }
 
 export async function updateTaskStatus(taskId: string, status: TaskStatus, projectId: string) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const { data: task, error } = await supabase
@@ -168,6 +170,7 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus, proje
 }
 
 export async function updateTask(taskId: string, projectId: string, formData: FormData) {
+  await requireStaffContext();
   const supabase = await createClient();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -189,6 +192,7 @@ export async function updateTask(taskId: string, projectId: string, formData: Fo
 }
 
 export async function deleteTask(taskId: string, projectId: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("project_tasks").delete().eq("id", taskId);
   if (error) return { error: error.message };
@@ -200,7 +204,7 @@ export async function deleteTask(taskId: string, projectId: string) {
 // Subtasks
 // ---------------------------------------------------------------------------
 export async function createSubtask(taskId: string, projectId: string, formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -218,6 +222,7 @@ export async function createSubtask(taskId: string, projectId: string, formData:
 }
 
 export async function toggleSubtask(subtaskId: string, isDone: boolean, projectId: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase
     .from("task_subtasks")
@@ -230,6 +235,7 @@ export async function toggleSubtask(subtaskId: string, isDone: boolean, projectI
 }
 
 export async function deleteSubtask(subtaskId: string, projectId: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("task_subtasks").delete().eq("id", subtaskId);
   if (error) return { error: error.message };
@@ -241,7 +247,7 @@ export async function deleteSubtask(subtaskId: string, projectId: string) {
 // Comments
 // ---------------------------------------------------------------------------
 export async function createComment(taskId: string, projectId: string, formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const body = String(formData.get("body") ?? "").trim();

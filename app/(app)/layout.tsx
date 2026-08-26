@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { PageTransition } from "@/components/layout/page-transition";
+import { ToastProvider } from "@/components/ui/toast";
 import type { NotificationItem } from "@/components/layout/notification-bell";
 
 export default async function AppLayout({
@@ -22,21 +23,23 @@ export default async function AppLayout({
     .limit(20);
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden">
-      <Sidebar orgName={ctx.organization.name} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar
-          userEmail={ctx.email}
-          userName={ctx.profile?.full_name ?? null}
-          userId={ctx.userId}
-          organizationId={ctx.organization.id}
-          orgName={ctx.organization.name}
-          initialNotifications={(notifications ?? []) as NotificationItem[]}
-        />
-        <main className="flex-1 overflow-y-auto">
-          <PageTransition>{children}</PageTransition>
-        </main>
+    <ToastProvider>
+      <div className="h-screen flex bg-background overflow-hidden">
+        <Sidebar orgName={ctx.organization.name} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Topbar
+            userEmail={ctx.email}
+            userName={ctx.profile?.full_name ?? null}
+            userId={ctx.userId}
+            organizationId={ctx.organization.id}
+            orgName={ctx.organization.name}
+            initialNotifications={(notifications ?? []) as NotificationItem[]}
+          />
+          <main className="flex-1 overflow-y-auto">
+            <PageTransition>{children}</PageTransition>
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

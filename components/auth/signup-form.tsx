@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { safeNextPath } from "@/lib/navigation";
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [fullName, setFullName] = useState("");
@@ -28,12 +30,16 @@ export function SignupForm() {
 
     setLoading(true);
 
+    const next = safeNextPath(searchParams.get("next"));
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (next) callbackUrl.searchParams.set("next", next);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: callbackUrl.toString(),
       },
     });
 
@@ -47,7 +53,7 @@ export function SignupForm() {
     // If email confirmation is required, Supabase returns a user with no
     // session yet. Otherwise we already have a session and can proceed.
     if (data.session) {
-      router.push("/onboarding");
+      router.push(next ?? "/onboarding");
       router.refresh();
     } else {
       setSent(true);
@@ -124,7 +130,7 @@ export function SignupForm() {
       </Button>
 
       <p className="text-xs text-faint text-center">
-        By continuing you agree to Merkato&apos;s Terms of Service and Privacy Policy.
+        By continuing, you confirm that you are authorized to create or join this workspace.
       </p>
     </form>
   );

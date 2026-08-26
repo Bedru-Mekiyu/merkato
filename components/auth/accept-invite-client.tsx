@@ -27,8 +27,8 @@ export function AcceptInviteClient({
       return;
     }
 
-    // Redirect to dashboard after joining
-    router.push("/dashboard");
+    // Redirect into the workspace the invitation just joined.
+    router.push(result.orgSlug ? `/dashboard?workspace=${result.orgSlug}` : "/dashboard");
     router.refresh();
   }
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireOrgContext } from "@/lib/org-context";
+import { requireStaffContext } from "@/lib/org-context";
 import { logActivity } from "@/lib/activity";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -11,7 +11,7 @@ import type { ArticleStatus, KbArticle } from "@/types/database";
 // Categories
 // ---------------------------------------------------------------------------
 export async function createCategory(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -30,6 +30,7 @@ export async function createCategory(formData: FormData) {
 }
 
 export async function deleteCategory(id: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("kb_categories").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -50,7 +51,7 @@ function parseTags(raw: string): string[] {
 export async function createArticle(
   formData: FormData
 ): Promise<{ error: string } | { success: true; article: KbArticle }> {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -96,7 +97,7 @@ export async function updateArticle(
   articleId: string,
   formData: FormData
 ): Promise<{ error: string } | { success: true }> {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -136,6 +137,7 @@ export async function updateArticle(
 }
 
 export async function deleteArticle(id: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("kb_articles").delete().eq("id", id);
   if (error) return { error: error.message };

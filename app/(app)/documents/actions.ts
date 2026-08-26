@@ -44,6 +44,7 @@ export async function createFolder(formData: FormData) {
 }
 
 export async function deleteFolder(folderId: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase
     .from("document_folders")
@@ -68,14 +69,19 @@ export async function uploadDocument(formData: FormData) {
   if (file.size > 50 * 1024 * 1024) return { error: "File must be under 50 MB." };
 
   // Check if a document with this name already exists in the folder (new version)
-  const { data: existing } = await supabase
+  let existingQuery = supabase
     .from("documents")
     .select("id, name")
     .eq("organization_id", ctx.organization.id)
     .eq("name", file.name)
-    .eq("folder_id", folder_id ?? "")
-    .eq("status", "active")
-    .maybeSingle();
+    .eq("status", "active");
+
+  existingQuery = folder_id
+    ? existingQuery.eq("folder_id", folder_id)
+    : existingQuery.is("folder_id", null);
+
+  const { data: existing, error: existingError } = await existingQuery.maybeSingle();
+  if (existingError) return { error: existingError.message };
 
   if (existing) {
     return uploadNewVersion(ctx.organization.id, ctx.userId, existing.id, file, supabase);
@@ -113,10 +119,16 @@ export async function uploadDocument(formData: FormData) {
   }
 
   // Update the real storage path
-  await supabase
+  const { error: pathError } = await supabase
     .from("documents")
     .update({ storage_path: path })
     .eq("id", doc.id);
+
+  if (pathError) {
+    await supabase.storage.from(BUCKET).remove([path]);
+    await supabase.from("documents").delete().eq("id", doc.id);
+    return { error: pathError.message };
+  }
 
   await logActivity({
     organizationId: ctx.organization.id,
@@ -199,7 +211,18 @@ async function uploadNewVersion(
 // Generate a short-lived signed URL for downloading a file
 // ---------------------------------------------------------------------------
 export async function getSignedUrl(storagePath: string): Promise<string | null> {
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
+  const { data: document } = await supabase
+    .from("documents")
+    .select("storage_path, organization_id, status")
+    .eq("organization_id", ctx.organization.id)
+    .eq("storage_path", storagePath)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!document) return null;
+
   const { data } = await supabase.storage
     .from(BUCKET)
     .createSignedUrl(storagePath, 60 * 60); // 1 hour
@@ -249,6 +272,8 @@ export async function restoreVersion(versionId: string, docId: string) {
     .from("document_versions")
     .select("storage_path, size_bytes")
     .eq("id", versionId)
+    .eq("document_id", docId)
+    .eq("organization_id", ctx.organization.id)
     .single();
 
   if (!version) return { error: "Version not found." };
@@ -265,6 +290,7 @@ export async function restoreVersion(versionId: string, docId: string) {
     .from("documents")
     .select("name")
     .eq("id", docId)
+    .eq("organization_id", ctx.organization.id)
     .single();
 
   const newPath = storagePath(ctx.organization.id, docId, `restored_${Date.now()}_${doc?.name ?? "file"}`);

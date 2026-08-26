@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { safeNextPath } from "@/lib/navigation";
 
 export function LoginForm() {
   const router = useRouter();
@@ -44,8 +45,8 @@ export function LoginForm() {
       return;
     }
 
-    const next = searchParams.get("next");
-    router.push(next && next.startsWith("/") ? next : "/dashboard");
+    const next = safeNextPath(searchParams.get("next"));
+    router.push(next ?? "/dashboard");
     router.refresh();
   }
 

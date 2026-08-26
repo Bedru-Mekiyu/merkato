@@ -3,6 +3,7 @@ import { SignupForm } from "@/components/auth/signup-form";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { oauthEnabled } from "@/lib/features";
 import { Briefcase, KanbanSquare, LifeBuoy, Users } from "lucide-react";
+import { Suspense } from "react";
 
 const modules = [
   { icon: Briefcase, label: "CRM & deal pipeline" },
@@ -33,7 +34,9 @@ export default function SignupPage() {
 
           {oauthEnabled() && (
             <>
-              <OAuthButtons />
+              <Suspense fallback={null}>
+                <OAuthButtons />
+              </Suspense>
 
               <div className="flex items-center gap-3 my-6">
                 <div className="flex-1 h-px bg-border" />
@@ -43,7 +46,9 @@ export default function SignupPage() {
             </>
           )}
 
-          <SignupForm />
+          <Suspense fallback={null}>
+            <SignupForm />
+          </Suspense>
 
           <p className="mt-6 text-sm text-muted text-center">
             Already have an account?{" "}

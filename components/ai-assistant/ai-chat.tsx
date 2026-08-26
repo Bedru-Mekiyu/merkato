@@ -225,13 +225,10 @@ export function AiChat({
 
         {error && (
           <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-4 py-3 max-w-lg">
-            <strong>Error:</strong> {error}
-            {error.includes("ANTHROPIC_API_KEY") && (
-              <p className="mt-1 text-xs">
-                Add <code className="font-mono">ANTHROPIC_API_KEY=sk-ant-...</code> to your{" "}
-                <code className="font-mono">.env.local</code> file, then restart the dev server.
-              </p>
-            )}
+            <strong>AI Assistant unavailable.</strong>{" "}
+            {error.includes("ANTHROPIC_API_KEY")
+              ? "This feature isn't configured yet — ask your workspace admin to enable it in Settings."
+              : error}
           </div>
         )}
 

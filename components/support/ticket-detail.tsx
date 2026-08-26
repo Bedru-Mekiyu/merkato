@@ -22,6 +22,7 @@ import {
   staffReply,
   customerReply,
 } from "@/app/(app)/support/actions";
+import { useToast } from "@/components/ui/toast";
 
 const statusBadge: Record<TicketStatus, "default" | "accent" | "success" | "warning"> = {
   open: "accent",
@@ -46,6 +47,7 @@ export function TicketDetail({
   backHref?: string;
 }) {
   const router = useRouter();
+  const { report } = useToast();
   const [reply, setReply] = useState("");
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [sending, setSending] = useState(false);
@@ -57,18 +59,21 @@ export function TicketDetail({
 
   async function handleStatusChange(status: TicketStatus) {
     setStatusLoading(true);
-    await updateTicketStatus(ticket.id, status);
+    const result = await updateTicketStatus(ticket.id, status);
     setStatusLoading(false);
+    if (!report(result, `Status set to ${status}`)) return;
     router.refresh();
   }
 
   async function handlePriorityChange(priority: TicketPriority) {
-    await updateTicketPriority(ticket.id, priority);
+    const result = await updateTicketPriority(ticket.id, priority);
+    if (!report(result, `Priority set to ${priority}`)) return;
     router.refresh();
   }
 
   async function handleAssign(assigneeId: string) {
-    await assignTicket(ticket.id, assigneeId || null);
+    const result = await assignTicket(ticket.id, assigneeId || null);
+    if (!report(result, assigneeId ? "Ticket assigned" : "Ticket unassigned")) return;
     router.refresh();
   }
 
@@ -80,15 +85,16 @@ export function TicketDetail({
     formData.set("body", reply);
     if (isInternalNote) formData.set("is_internal_note", "on");
 
-    if (isStaffView) {
-      await staffReply(ticket.id, formData);
-    } else {
-      await customerReply(ticket.id, formData);
-    }
+    const result = isStaffView
+      ? await staffReply(ticket.id, formData)
+      : await customerReply(ticket.id, formData);
+
+    setSending(false);
+
+    if (!report(result, isInternalNote ? "Internal note added" : "Reply sent")) return;
 
     setReply("");
     setIsInternalNote(false);
-    setSending(false);
     router.refresh();
   }
 

@@ -4,16 +4,28 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Trash2, Building2 } from "lucide-react";
 import { deleteCompany } from "@/app/(app)/crm/actions";
+import { useToast } from "@/components/ui/toast";
 import type { Company } from "@/types/database";
 
 export function CompaniesTable({ companies }: { companies: Company[] }) {
   const router = useRouter();
+  const { report } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
+    const company = companies.find((c) => c.id === id);
+    if (
+      !window.confirm(
+        `Delete "${company?.name ?? "this company"}"? Related contacts and deals will be unlinked.`
+      )
+    ) {
+      return;
+    }
+
     setDeletingId(id);
-    await deleteCompany(id);
+    const result = await deleteCompany(id);
     setDeletingId(null);
+    if (!report(result, "Company deleted")) return;
     router.refresh();
   }
 
@@ -32,8 +44,8 @@ export function CompaniesTable({ companies }: { companies: Company[] }) {
   }
 
   return (
-    <div className="border border-border rounded-md bg-surface overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="border border-border rounded-md bg-surface overflow-x-auto">
+      <table className="w-full min-w-[40rem] text-sm">
         <thead>
           <tr className="border-b border-border text-left">
             <th className="px-4 py-2.5 text-xs font-medium text-muted">Name</th>

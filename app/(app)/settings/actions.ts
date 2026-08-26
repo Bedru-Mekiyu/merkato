@@ -1,12 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireOrgContext } from "@/lib/org-context";
+import { requireStaffContext } from "@/lib/org-context";
 import { auditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
 export async function updateProfile(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const full_name = String(formData.get("full_name") ?? "").trim();
@@ -32,7 +32,7 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function updateWorkspace(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   if (ctx.role !== "owner" && ctx.role !== "admin") {

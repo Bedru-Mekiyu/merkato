@@ -24,6 +24,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .in("role", ["owner", "admin", "member"])
+    .limit(1)
+    .maybeSingle();
+  if (!membership) {
+    return NextResponse.json({ error: "Staff access required" }, { status: 403 });
+  }
+
   // AI calls cost money — tighter budget than search (20/min per user)
   const rl = rateLimit(`ai:${user.id}`, 20);
   if (!rl.ok) {
@@ -33,10 +44,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { messages, context } = await req.json();
+  const payload = await req.json();
+  const { messages, context } = payload;
 
-  if (!messages || !Array.isArray(messages)) {
+  if (
+    !Array.isArray(messages) ||
+    messages.length > 50 ||
+    messages.some(
+      (message) =>
+        !message ||
+        !["user", "assistant"].includes(message.role) ||
+        typeof message.content !== "string" ||
+        message.content.length > 8000
+    )
+  ) {
     return NextResponse.json({ error: "messages is required." }, { status: 400 });
+  }
+
+  if (context !== undefined && (typeof context !== "string" || context.length > 12000)) {
+    return NextResponse.json({ error: "context is too large." }, { status: 400 });
   }
 
   const systemPrompt = `You are Merkato AI, the built-in assistant for the Merkato startup operations platform. You help teams with their daily work: CRM pipeline management, project tasks, team communication, knowledge management, and customer support.

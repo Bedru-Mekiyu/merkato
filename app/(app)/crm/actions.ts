@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireOrgContext } from "@/lib/org-context";
+import { requireStaffContext } from "@/lib/org-context";
 import { logActivity } from "@/lib/activity";
 import { revalidatePath } from "next/cache";
 import type { DealStage } from "@/types/database";
@@ -10,7 +10,7 @@ import type { DealStage } from "@/types/database";
 // Companies
 // ---------------------------------------------------------------------------
 export async function createCompany(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -42,6 +42,7 @@ export async function createCompany(formData: FormData) {
 }
 
 export async function deleteCompany(id: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("crm_companies").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -53,7 +54,7 @@ export async function deleteCompany(id: string) {
 // Contacts
 // ---------------------------------------------------------------------------
 export async function createContact(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const full_name = String(formData.get("full_name") ?? "").trim();
@@ -89,6 +90,7 @@ export async function createContact(formData: FormData) {
 }
 
 export async function deleteContact(id: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("crm_contacts").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -100,7 +102,7 @@ export async function deleteContact(id: string) {
 // Deals
 // ---------------------------------------------------------------------------
 export async function createDeal(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -137,7 +139,7 @@ export async function createDeal(formData: FormData) {
 }
 
 export async function updateDealStage(dealId: string, stage: DealStage) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const { data: deal, error } = await supabase
@@ -168,6 +170,7 @@ export async function updateDealStage(dealId: string, stage: DealStage) {
 }
 
 export async function deleteDeal(id: string) {
+  await requireStaffContext();
   const supabase = await createClient();
   const { error } = await supabase.from("crm_deals").delete().eq("id", id);
   if (error) return { error: error.message };

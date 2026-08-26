@@ -45,6 +45,24 @@ describe("renderMarkdown", () => {
     expect(html).toContain('rel="noopener noreferrer"');
   });
 
+  it.each([
+    ["javascript:alert(document.domain)", "javascript"],
+    ["data:text/html,<script>alert(1)</script>", "data"],
+    ["vbscript:msgbox(1)", "vbscript"],
+    ["//evil.example.com", "protocol-relative"],
+  ])("strips unsafe %s link scheme", (href, label) => {
+    const html = renderMarkdown(`[Click me](${href})`);
+    expect(html).not.toContain(`href="${href}"`);
+    // The label text remains (rendered as plain text, not a link)
+    expect(html).toContain("Click me");
+    expect(html).not.toContain("<a");
+  });
+
+  it("keeps safe relative links", () => {
+    const html = renderMarkdown("[Home](/dashboard)");
+    expect(html).toContain('href="/dashboard"');
+  });
+
   it("closes open lists at end of input", () => {
     const html = renderMarkdown("- item");
     expect(html.trimEnd().endsWith("</ul>")).toBe(true);

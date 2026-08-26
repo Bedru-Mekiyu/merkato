@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireOrgContext } from "@/lib/org-context";
+import { requireStaffContext } from "@/lib/org-context";
 import { logActivity } from "@/lib/activity";
 import { revalidatePath } from "next/cache";
 
@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 // Channels
 // ---------------------------------------------------------------------------
 export async function createChannel(formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -44,8 +44,20 @@ export async function createChannel(formData: FormData) {
  * or creates one. Returns the channel id either way.
  */
 export async function getOrCreateDM(otherUserId: string) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
+
+  const { data: targetMember } = await supabase
+    .from("organization_members")
+    .select("user_id, role")
+    .eq("organization_id", ctx.organization.id)
+    .eq("user_id", otherUserId)
+    .in("role", ["owner", "admin", "member"])
+    .maybeSingle();
+
+  if (!targetMember) {
+    return { error: "That teammate is not part of this workspace." };
+  }
 
   // Look for an existing DM channel containing exactly these two members.
   const { data: myChannels } = await supabase
@@ -80,10 +92,15 @@ export async function getOrCreateDM(otherUserId: string) {
 
   if (error || !channel) return { error: error?.message ?? "Could not create DM." };
 
-  await supabase.from("channel_members").insert([
+  const { error: membersError } = await supabase.from("channel_members").insert([
     { channel_id: channel.id, organization_id: ctx.organization.id, user_id: ctx.userId },
     { channel_id: channel.id, organization_id: ctx.organization.id, user_id: otherUserId },
   ]);
+
+  if (membersError) {
+    await supabase.from("channels").delete().eq("id", channel.id);
+    return { error: membersError.message };
+  }
 
   return { success: true, channelId: channel.id as string };
 }
@@ -92,18 +109,18 @@ export async function getOrCreateDM(otherUserId: string) {
 // Messages
 // ---------------------------------------------------------------------------
 export async function sendMessage(channelId: string, formData: FormData) {
-  const ctx = await requireOrgContext();
+  const ctx = await requireStaffContext();
   const supabase = await createClient();
 
   const body = String(formData.get("body") ?? "").trim();
   if (!body) return { error: "Message cannot be empty." };
 
-  const { error } = await supabase.from("messages").insert({
+  const { data: message, error } = await supabase.from("messages").insert({
     organization_id: ctx.organization.id,
     channel_id: channelId,
     body,
     created_by: ctx.userId,
-  });
+  }).select().single();
 
   if (error) return { error: error.message };
 
@@ -116,5 +133,5 @@ export async function sendMessage(channelId: string, formData: FormData) {
   });
 
   revalidatePath("/team");
-  return { success: true };
+  return { success: true, message };
 }
