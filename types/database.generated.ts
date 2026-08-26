@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.17"
+  }
   public: {
     Tables: {
       activity_log: {
@@ -123,6 +128,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "channels"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_channel_org_fkey"
+            columns: ["channel_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id", "organization_id"]
           },
           {
             foreignKeyName: "channel_members_organization_id_fkey"
@@ -1156,11 +1168,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ticket_messages_ticket_id_fkey"
-            columns: ["ticket_id"]
+            foreignKeyName: "ticket_messages_ticket_org_fkey"
+            columns: ["ticket_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "support_tickets"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
@@ -1170,13 +1182,38 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: Json }
+      create_organization: {
+        Args: { org_name: string; org_slug: string }
+        Returns: string
+      }
       current_org_role: {
         Args: { org_id: string }
         Returns: Database["public"]["Enums"]["org_role"]
       }
+      customer_reply: {
+        Args: { p_body: string; p_ticket_id: string }
+        Returns: Json
+      }
+      get_invitation_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          accepted_at: string
+          email: string
+          expires_at: string
+          organization_name: string
+          organization_slug: string
+          role: Database["public"]["Enums"]["org_role"]
+        }[]
+      }
       get_org_staff_emails: { Args: { p_org_id: string }; Returns: string[] }
       get_user_email: { Args: { p_user_id: string }; Returns: string }
+      is_any_org_member: { Args: { org_id: string }; Returns: boolean }
       is_org_member: { Args: { org_id: string }; Returns: boolean }
+      is_staff_member: { Args: { org_id: string }; Returns: boolean }
+      is_staff_user: {
+        Args: { member_id: string; org_id: string }
+        Returns: boolean
+      }
       join_org_as_customer: { Args: { org_slug: string }; Returns: string }
     }
     Enums: {

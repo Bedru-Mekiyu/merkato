@@ -42,9 +42,29 @@ const BASE = `
 </html>`;
 
 function base(title: string, content: string): string {
-  return BASE.replace("{{TITLE}}", title)
+  return BASE.replace("{{TITLE}}", escapeHtml(title))
     .replace("{{CONTENT}}", content)
     .replace("{{YEAR}}", new Date().getFullYear().toString());
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function safeUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? escapeHtml(url.toString())
+      : "#";
+  } catch {
+    return "#";
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -61,13 +81,13 @@ export function invitationEmail(params: {
       `Join ${params.orgName} on Merkato`,
       `<div class="card">
         <h1>You've been invited</h1>
-        <p><strong style="color:#fff">${params.inviterName}</strong> has invited you to join
-        <strong style="color:#fff">${params.orgName}</strong> on Merkato — the all-in-one
+        <p><strong style="color:#fff">${escapeHtml(params.inviterName)}</strong> has invited you to join
+        <strong style="color:#fff">${escapeHtml(params.orgName)}</strong> on Merkato — the all-in-one
         platform for CRM, projects, team collaboration, and more.</p>
-        <a href="${params.inviteUrl}" class="btn">Accept invitation</a>
+        <a href="${safeUrl(params.inviteUrl)}" class="btn">Accept invitation</a>
         <hr class="divider"/>
         <p class="small">This invitation expires in 7 days. If you didn't expect this, you can safely ignore it.</p>
-        <p class="small">Or copy this link into your browser:<br/>${params.inviteUrl}</p>
+        <p class="small">Or copy this link into your browser:<br/>${escapeHtml(params.inviteUrl)}</p>
       </div>`
     ),
   };
@@ -87,7 +107,7 @@ export function passwordResetEmail(params: {
         <h1>Reset your password</h1>
         <p>We received a request to reset the password for your Merkato account.
         Click the button below to choose a new password.</p>
-        <a href="${params.resetUrl}" class="btn">Reset password</a>
+        <a href="${safeUrl(params.resetUrl)}" class="btn">Reset password</a>
         <hr class="divider"/>
         <p class="small">This link expires in 1 hour. If you didn't request a password reset,
         you can safely ignore this email — your password won't change.</p>
@@ -110,7 +130,7 @@ export function verificationEmail(params: {
         <h1>Confirm your email</h1>
         <p>Thanks for signing up for Merkato! Click the button below to verify your
         email address and activate your account.</p>
-        <a href="${params.confirmUrl}" class="btn">Confirm email address</a>
+        <a href="${safeUrl(params.confirmUrl)}" class="btn">Confirm email address</a>
         <hr class="divider"/>
         <p class="small">If you didn't create a Merkato account, you can safely ignore this email.</p>
       </div>`
@@ -134,11 +154,11 @@ export function newTicketEmail(params: {
       "New support request",
       `<div class="card">
         <h1>New support request</h1>
-        <p><strong style="color:#fff">${params.customerName}</strong> submitted a support
-        request in <strong style="color:#fff">${params.orgName}</strong>.</p>
-        <p><strong style="color:#fff">Subject:</strong> ${params.subject}</p>
-        <p>${params.description.slice(0, 300)}${params.description.length > 300 ? "…" : ""}</p>
-        <a href="${params.ticketUrl}" class="btn">View ticket</a>
+        <p><strong style="color:#fff">${escapeHtml(params.customerName)}</strong> submitted a support
+        request in <strong style="color:#fff">${escapeHtml(params.orgName)}</strong>.</p>
+        <p><strong style="color:#fff">Subject:</strong> ${escapeHtml(params.subject)}</p>
+        <p>${escapeHtml(params.description.slice(0, 300))}${params.description.length > 300 ? "…" : ""}</p>
+        <a href="${safeUrl(params.ticketUrl)}" class="btn">View ticket</a>
       </div>`
     ),
   };
@@ -160,9 +180,9 @@ export function ticketReplyEmail(params: {
       `<div class="card">
         <h1>New reply on your request</h1>
         <p>The <strong style="color:#fff">${params.orgName}</strong> support team has replied
-        to your request: <strong style="color:#fff">${params.subject}</strong>.</p>
-        <p>${params.replyBody.slice(0, 400)}${params.replyBody.length > 400 ? "…" : ""}</p>
-        <a href="${params.ticketUrl}" class="btn">View full reply</a>
+         to your request: <strong style="color:#fff">${escapeHtml(params.subject)}</strong>.</p>
+        <p>${escapeHtml(params.replyBody.slice(0, 400))}${params.replyBody.length > 400 ? "…" : ""}</p>
+        <a href="${safeUrl(params.ticketUrl)}" class="btn">View full reply</a>
       </div>`
     ),
   };
@@ -182,9 +202,9 @@ export function taskAssignedEmail(params: {
       "Task assigned",
       `<div class="card">
         <h1>You have a new task</h1>
-        <p><strong style="color:#fff">${params.assignerName}</strong> assigned you a task:
-        <strong style="color:#fff">${params.taskTitle}</strong>.</p>
-        <a href="${params.projectUrl}" class="btn">View task</a>
+        <p><strong style="color:#fff">${escapeHtml(params.assignerName)}</strong> assigned you a task:
+        <strong style="color:#fff">${escapeHtml(params.taskTitle)}</strong>.</p>
+        <a href="${safeUrl(params.projectUrl)}" class="btn">View task</a>
       </div>`
     ),
   };
@@ -208,7 +228,7 @@ export function weeklyDigestEmail(params: {
       `<div class="card">
         <h1>Your weekly summary</h1>
         <p>Hi <strong style="color:#fff">${params.userName}</strong>, here's what's open in
-        <strong style="color:#fff">${params.orgName}</strong> this week.</p>
+        <strong style="color:#fff">${escapeHtml(params.orgName)}</strong> this week.</p>
         <table style="width:100%;border-collapse:collapse;margin:16px 0;">
           <tr>
             <td style="padding:12px;background:#27272A;border-radius:8px 0 0 8px;text-align:center;">
@@ -227,7 +247,7 @@ export function weeklyDigestEmail(params: {
             </td>
           </tr>
         </table>
-        <a href="${params.appUrl}/dashboard" class="btn">Open Merkato</a>
+        <a href="${safeUrl(params.appUrl)}" class="btn">Open Merkato</a>
       </div>`
     ),
   };

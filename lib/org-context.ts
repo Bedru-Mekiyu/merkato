@@ -22,6 +22,11 @@ export async function requireOrgContext(): Promise<CurrentUserContext> {
     redirect("/login");
   }
 
+  const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (assurance?.nextLevel === "aal2" && assurance.currentLevel !== "aal2") {
+    redirect("/verify-mfa");
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")

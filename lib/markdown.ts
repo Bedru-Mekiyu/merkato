@@ -27,11 +27,21 @@ function renderInline(text: string): string {
   // Italic
   out = out.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
   // Links
-  out = out.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" class="kb-link" target="_blank" rel="noopener noreferrer">$1</a>'
-  );
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label, href) => {
+    const safeHref = sanitizeLink(href);
+    if (!safeHref) return label;
+    return `<a href="${safeHref}" class="kb-link" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  });
   return out;
+}
+
+function sanitizeLink(href: string): string | null {
+  const normalized = href.trim();
+  if (/^(https?:|mailto:)/i.test(normalized)) return normalized.replace(/"/g, "&quot;");
+  if (normalized.startsWith("/") && !normalized.startsWith("//")) {
+    return normalized.replace(/"/g, "&quot;");
+  }
+  return null;
 }
 
 export function renderMarkdown(markdown: string): string {
