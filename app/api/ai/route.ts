@@ -8,11 +8,11 @@ import { rateLimit } from "@/lib/rate-limit";
 // Returns a streaming text/plain response
 // ---------------------------------------------------------------------------
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OX_ALPHA_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY is not set. Add it to your .env.local file." },
+      { error: "OX_ALPHA_API_KEY is not set. Add it to your .env.local file." },
       { status: 500 }
     );
   }
@@ -72,29 +72,21 @@ Be concise and practical. When answering questions about the workspace, be speci
 ${context ? `\n## Current Workspace Context\n${context}` : ""}`;
 
   try {
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const oxRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "claude-3-5-haiku-20241022",
+        model: "ox-alpha",
         max_tokens: 1024,
+        temperature: 0.7,
         system: systemPrompt,
         stream: true,
         messages: messages.slice(-20), // limit context window
       }),
     });
-
-    if (!anthropicRes.ok) {
-      const errorText = await anthropicRes.text();
-      return NextResponse.json(
-        { error: `Anthropic API error: ${anthropicRes.status} — ${errorText}` },
-        { status: 502 }
-      );
-    }
 
     // Forward the stream directly to the client
     const { readable, writable } = new TransformStream();
@@ -102,7 +94,7 @@ ${context ? `\n## Current Workspace Context\n${context}` : ""}`;
     const encoder = new TextEncoder();
 
     (async () => {
-      const reader = anthropicRes.body!.getReader();
+      const reader = oxRes.body!.getReader();
       const decoder = new TextDecoder();
 
       try {
@@ -119,8 +111,8 @@ ${context ? `\n## Current Workspace Context\n${context}` : ""}`;
               if (data === "[DONE]") continue;
               try {
                 const parsed = JSON.parse(data);
-                if (parsed.type === "content_block_delta" && parsed.delta?.text) {
-                  await writer.write(encoder.encode(parsed.delta.text));
+                if (parsed.choices?.[0]?.delta?.content) {
+                  await writer.write(encoder.encode(parsed.choices[0].delta.content));
                 }
               } catch {
                 // Skip malformed SSE lines

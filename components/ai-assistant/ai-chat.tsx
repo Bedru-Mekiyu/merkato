@@ -144,7 +144,7 @@ export function AiChat({
           </div>
           <div>
             <h1 className="text-sm font-semibold text-white">AI Assistant</h1>
-            <p className="text-xs text-muted">Org-aware · Powered by Claude</p>
+            <p className="text-xs text-muted">Org-aware · Powered by ox-alpha</p>
           </div>
         </div>
         {messages.length > 0 && (
