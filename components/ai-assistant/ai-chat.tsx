@@ -137,14 +137,14 @@ export function AiChat({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 shrink-0 bg-header">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-sm bg-accent/10 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-md flex items-center justify-center flex-shrink-0 bg-accent/10">
             <Sparkles className="h-4 w-4 text-accent" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-white">AI Assistant</h1>
-            <p className="text-xs text-muted">Org-aware · Powered by ox-alpha</p>
+            <h1 className="text-sm font-semibold whitespace-nowrap text-white">AI Assistant</h1>
+            <p className="text-xs text-muted-foreground opacity-60">Org-aware · Powered by ox-alpha</p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -160,24 +160,24 @@ export function AiChat({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-3xl mx-auto w-full">
-        {messages.length === 0 && (
-          <div className="text-center py-8">
-            <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+{messages.length === 0 && (
+          <div className="text-center py-10">
+            <div className="h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-5 bg-accent/5">
               <Sparkles className="h-6 w-6 text-accent" />
             </div>
-            <h2 className="text-lg font-semibold text-white mb-1">
+            <h2 className="text-lg font-semibold text-white mb-2">
               Hello, {userName}
             </h2>
-            <p className="text-sm text-muted mb-8 max-w-xs mx-auto">
+            <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">
               I have live context from your workspace — deals, tasks, tickets,
               and recent activity. Ask me anything.
             </p>
-            <div className="space-y-2 max-w-sm mx-auto">
+            <div className="grid grid-cols-2 gap-2 justify-center max-w-sm mx-auto pt-4">
               {suggestedPrompts.map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => sendMessage(prompt)}
-                  className="w-full text-left text-sm px-4 py-2.5 rounded-md border border-border bg-surface hover:border-white/20 hover:bg-white/[0.02] text-white/80 hover:text-white transition-colors"
+                  className="rounded-md px-3 py-1.5 text-xs font-medium text-white/80 border border-border/30 hover:border-white/20 hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
                 >
                   {prompt}
                 </button>
@@ -187,48 +187,51 @@ export function AiChat({
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} className={cn("flex gap-3", msg.role === "user" && "flex-row-reverse")}>
+          <div
+            key={i}
+            className={cn(
+              "flex gap-3 items-start",
+              msg.role === "user" && "flex-row-reverse"
+            )}
+          >
             <div
               className={cn(
-                "h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                "h-9 w-9 rounded-2xl flex items-center justify-center shrink-0 mt-0 flex-shrink-0",
                 msg.role === "assistant"
-                  ? "bg-accent/10 border border-accent/30"
-                  : "bg-white/10 border border-white/15"
+                  ? "bg-accent text-accent"
+                  : "bg-white/20 border border-white/10"
               )}
             >
               {msg.role === "assistant"
-                ? <Sparkles className="h-3.5 w-3.5 text-accent" />
-                : <User className="h-3.5 w-3.5 text-white/70" />
+                ? <Sparkles className="h-4 w-4 lines text-accent" />
+                : <User className="h-4 w-4 text-white/70" />
               }
             </div>
             <div
-              className={cn(
-                "flex-1 max-w-[85%] rounded-md px-4 py-3 text-sm",
-                msg.role === "user"
-                  ? "bg-accent/10 text-white ml-auto"
-                  : "bg-surface border border-border text-white/90"
-              )}
+              className="flex-1 min-w[0%] rounded-xl px-4 py-3 text-sm msg msg-bubble"
+              style={{ flex: "1 1 calc(85% - 2rem)" }}
             >
               {msg.role === "assistant" ? (
-                <div className="space-y-0.5">
+                <div className="space-y-1.5">
                   {renderContent(msg.content)}
                   {msg.streaming && (
-                    <span className="inline-block h-3.5 w-0.5 bg-accent animate-pulse ml-0.5" />
+                    <span className="h-0.5 w-1/2 rounded bg-accent animate-pulse" />
                   )}
                 </div>
               ) : (
-                <p className="leading-relaxed">{msg.content}</p>
+                <p className="leading-relaxed break-words">{msg.content}</p>
               )}
             </div>
           </div>
         ))}
 
         {error && (
-          <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-4 py-3 max-w-lg">
-            <strong>AI Assistant unavailable.</strong>{" "}
-            {error.includes("ANTHROPIC_API_KEY")
+          <div className="rounded-xl px-4 py-3 text-sm max-w-lg bg-danger/10 border border-danger/20 text-white">
+            <svg className="h-4 w-4 flex-shrink-0 mr-2 opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path className="stroke-2" d="M10 14l2-2m0 2l2-2m-2-2l2 2m2 2l-2-2m2-2l2 2m7-4h.01M7 7l5 5m0 0l-5 5m5-5H9"/></svg>
+            <strong className="inline-block mb-1.5 text-lg">AI Assistant unavailable.</strong>
+            <p className="text-muted-foreground text-sm">{error.includes("OX_ALPHA_API_KEY")
               ? "This feature isn't configured yet — ask your workspace admin to enable it in Settings."
-              : error}
+              : error}</p>
           </div>
         )}
 
@@ -236,14 +239,14 @@ export function AiChat({
       </div>
 
       {/* Input */}
-      <div className="border-t border-border px-6 py-4 max-w-3xl mx-auto w-full">
+      <div className="border-t border-border/50 px-6 py-4 bg-card">
         {messages.length > 0 && !loading && (
-          <div className="flex gap-2 mb-3 flex-wrap">
+          <div className="grid grid-cols-2 gap-2 mb-3">
             {suggestedPrompts.slice(0, 3).map((prompt) => (
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
-                className="text-xs px-2.5 py-1.5 rounded-sm border border-border bg-surface text-muted hover:text-white hover:border-white/20 transition-colors"
+                className="rounded-md px-3 py-1.5 text-xs font-medium text-white/80 border border-border/30 hover:border-white/20 hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
               >
                 {prompt}
               </button>
@@ -258,12 +261,12 @@ export function AiChat({
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask anything about your workspace..."
             disabled={loading}
-            className="flex-1 h-11 px-4 rounded-sm bg-surface border border-border text-sm text-white placeholder:text-faint focus:border-accent focus:ring-1 focus:ring-accent disabled:opacity-50"
+            className="flex-1 rounded-xl px-4 py-2.5 bg-surface border border-border text-sm text-white placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-colors"
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="h-11 w-11 flex items-center justify-center rounded-sm bg-accent text-white hover:bg-accent-hover disabled:opacity-50 transition-colors shrink-0"
+            className="rounded-lg px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             {loading
               ? <Loader2 className="h-4 w-4 animate-spin" />
