@@ -7,6 +7,7 @@ import { Menu, X, Settings } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { BrandMark, NavLinks } from "@/components/layout/sidebar";
+import { ThemeSelector } from "@/components/theme/theme-selector";
 
 /**
  * Mobile navigation drawer. The desktop sidebar is hidden below the md
@@ -65,14 +66,20 @@ export function MobileNav({ orgName }: { orgName: string }) {
               <nav aria-label="Main" className="flex-1 px-4 py-4 space-y-0.5 overflow-y-auto">
                 <NavLinks onNavigate={() => setOpen(false)} />
               </nav>
-              <div className="px-2 py-3 border-t border-border">
+              <div className="p-3 border-t border-border space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">
+                    Theme
+                  </span>
+                  <ThemeSelector variant="button" align="left" />
+                </div>
                 <Link
                   href="/settings"
                   aria-current={settingsActive ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     settingsActive
-                      ? "bg-accent/10 text-accent"
+                      ? "bg-primary/10 text-primary"
                       : "text-white/70 hover:bg-white/5 hover:text-white"
                   )}
                 >

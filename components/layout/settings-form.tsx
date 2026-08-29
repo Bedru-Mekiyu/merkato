@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeSelector } from "@/components/theme/theme-selector";
 import { updateProfile, updateWorkspace } from "@/app/(app)/settings/actions";
 import type { OrgRole } from "@/types/database";
 
@@ -132,6 +133,18 @@ export function SettingsForm({
           </form>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Workspace Appearance &amp; Theme</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-white/60">
+            Select a modern, high-contrast theme for your workspace. Theme preference syncs instantly across web and mobile.
+          </p>
+          <ThemeSelector variant="full" />
+        </CardContent>
+      </Card>
+
       {canEditWorkspace && (
         <Card>
           <CardHeader>
@@ -142,7 +155,7 @@ export function SettingsForm({
               href="/settings/invites"
               className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
             >
-              <Shield className="h-4 w-4 text-accent" />
+              <Shield className="h-4 w-4 text-primary" />
               Team Members &amp; Invitations
               <span className="ml-auto text-xs text-muted">→</span>
             </Link>
@@ -150,7 +163,7 @@ export function SettingsForm({
               href="/settings/mfa"
               className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
             >
-              <Shield className="h-4 w-4 text-accent" />
+              <Shield className="h-4 w-4 text-primary" />
               Two-Factor Authentication (MFA)
               <span className="ml-auto text-xs text-muted">→</span>
             </Link>
@@ -158,7 +171,7 @@ export function SettingsForm({
               href="/audit-log"
               className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
             >
-              <Shield className="h-4 w-4 text-accent" />
+              <Shield className="h-4 w-4 text-primary" />
               View Audit Log
               <span className="ml-auto text-xs text-muted">→</span>
             </Link>

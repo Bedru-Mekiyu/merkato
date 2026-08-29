@@ -13,8 +13,10 @@ import {
   Settings,
   FolderOpen,
   BarChart3,
+  Network,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MerkatoMark } from "@/components/ui/brand-logo";
 
 export const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -24,6 +26,7 @@ export const navItems = [
   { href: "/knowledge-base", label: "Knowledge Base", icon: BookOpen },
   { href: "/support", label: "Support", icon: LifeBuoy },
   { href: "/documents", label: "Documents", icon: FolderOpen },
+  { href: "/cluster", label: "Nodes Cluster", icon: Network },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/ai-assistant", label: "AI Assistant", icon: Sparkles },
 ];
@@ -63,22 +66,22 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-medium transition-all duration-150 group",
+                    "relative flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 group",
                     active
-                      ? "bg-accent/10 text-white"
+                      ? "bg-primary/10 text-white shadow-sm"
                       : "text-white/60 hover:bg-white/5 hover:text-white"
                   )}
                 >
                   {active && (
                     <span
                       aria-hidden="true"
-                      className="absolute -left-2 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full bg-accent"
+                      className="absolute -left-2 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-primary"
                     />
                   )}
                   <Icon
                     className={cn(
                       "h-4 w-4 shrink-0 transition-colors",
-                      active ? "text-accent" : "text-white/50 group-hover:text-white/80"
+                      active ? "text-primary" : "text-white/50 group-hover:text-white/80"
                     )}
                     strokeWidth={2}
                   />
@@ -94,18 +97,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
-  const dims = size === "sm" ? "h-6 w-6 text-xs" : "h-8 w-8 text-sm";
-  return (
-    <div
-      className={cn(
-        "rounded-md bg-gradient-to-br from-indigo-400 to-indigo-600 shadow-sm shadow-indigo-500/40 flex items-center justify-center text-white font-bold shrink-0",
-        dims
-      )}
-      aria-hidden="true"
-    >
-      M
-    </div>
-  );
+  return <MerkatoMark size={size} />;
 }
 
 export function Sidebar({ orgName }: { orgName: string }) {
@@ -113,10 +105,10 @@ export function Sidebar({ orgName }: { orgName: string }) {
   const settingsActive = pathname.startsWith("/settings");
 
   return (
-    <aside className="hidden md:flex w-60 flex-col border-r border-border bg-surface shrink-0">
-      <div className="h-14 flex items-center gap-2.5 px-4 border-b border-border">
-        <BrandMark size="sm" />
-        <span className="text-sm font-semibold text-white truncate">{orgName}</span>
+    <aside className="hidden md:flex w-64 flex-col border-r border-white/[0.08] bg-surface shrink-0">
+      <div className="h-14 flex items-center gap-2.5 px-4 border-b border-white/[0.08]">
+        <MerkatoMark size="sm" />
+        <span className="text-sm font-bold text-white truncate">{orgName}</span>
       </div>
 
       <nav aria-label="Main" className="flex-1 px-4 py-4 space-y-0.5 overflow-y-auto">
@@ -128,20 +120,20 @@ export function Sidebar({ orgName }: { orgName: string }) {
           href="/settings"
           aria-current={settingsActive ? "page" : undefined}
           className={cn(
-            "relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-medium transition-all duration-150",
+            "relative flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
             settingsActive
-              ? "bg-accent/10 text-white"
+              ? "bg-primary/10 text-white"
               : "text-white/60 hover:bg-white/5 hover:text-white"
           )}
         >
           {settingsActive && (
             <span
               aria-hidden="true"
-              className="absolute -left-2 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full bg-accent"
+              className="absolute -left-2 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-primary"
             />
           )}
           <Settings
-            className={cn("h-4 w-4", settingsActive ? "text-accent" : "text-white/50")}
+            className={cn("h-4 w-4", settingsActive ? "text-primary" : "text-white/50")}
             strokeWidth={2}
           />
           Settings

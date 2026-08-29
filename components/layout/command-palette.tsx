@@ -2,20 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, CornerDownLeft, Loader2, SearchX } from "lucide-react";
+import { Search, CornerDownLeft, Loader2, SearchX, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/components/layout/sidebar";
+import { useTheme } from "@/lib/theme-context";
 import type { SearchResponse, SearchResultItem } from "@/lib/search";
 
 interface Command {
   id: string;
   label: string;
-  href: string;
+  href?: string;
   hint?: string;
-  icon: (typeof navItems)[number]["icon"];
+  icon: (typeof navItems)[number]["icon"] | typeof Palette;
+  onSelect?: () => void;
 }
 
-const commands: Command[] = [
+const staticNavCommands: Command[] = [
   ...navItems.map((item) => ({
     id: item.href,
     label: item.label,
@@ -50,6 +52,7 @@ interface FlatResult extends SearchResultItem {
  */
 export function CommandPalette() {
   const router = useRouter();
+  const { theme, setTheme, themes } = useTheme();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -59,10 +62,24 @@ export function CommandPalette() {
 
   const trimmed = query.trim().toLowerCase();
 
+  const themeCommands = useMemo<Command[]>(() => {
+    return themes.map((t) => ({
+      id: `theme-${t.id}`,
+      label: `Switch Theme: ${t.name}`,
+      hint: theme === t.id ? "Active Theme" : t.category,
+      icon: Palette,
+      onSelect: () => setTheme(t.id),
+    }));
+  }, [themes, theme, setTheme]);
+
+  const allCommands = useMemo(() => {
+    return [...staticNavCommands, ...themeCommands];
+  }, [themeCommands]);
+
   const navResults = useMemo(() => {
-    if (!trimmed) return commands;
-    return commands.filter((c) => c.label.toLowerCase().includes(trimmed));
-  }, [trimmed]);
+    if (!trimmed) return allCommands;
+    return allCommands.filter((c) => c.label.toLowerCase().includes(trimmed));
+  }, [trimmed, allCommands]);
 
   const remoteResults = useMemo<FlatResult[]>(() => {
     if (!trimmed || trimmed.length < 2) return [];
@@ -146,9 +163,13 @@ export function CommandPalette() {
     };
   }, [open]);
 
-  function go(href: string) {
+  function handleSelect(command: Command) {
     close();
-    router.push(href);
+    if (command.onSelect) {
+      command.onSelect();
+    } else if (command.href) {
+      router.push(command.href);
+    }
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -164,10 +185,13 @@ export function CommandPalette() {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex < flatNav.length) {
-        go(flatNav[activeIndex].command.href);
+        handleSelect(flatNav[activeIndex].command);
       } else {
         const r = remoteResults[activeIndex - flatNav.length];
-        if (r) go(r.href);
+        if (r) {
+          close();
+          router.push(r.href);
+        }
       }
     }
   }
@@ -180,11 +204,12 @@ export function CommandPalette() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search (Ctrl+K)"
-        className="flex items-center gap-2 text-sm text-faint hover:text-muted bg-background border border-border hover:border-white/20 rounded-sm px-3 py-1.5 w-full max-w-xs transition-all duration-150"
+        className="flex items-center gap-2 text-xs sm:text-sm text-white/50 hover:text-white/80 bg-surface/60 border border-white/10 hover:border-white/20 rounded-md px-3 py-1.5 w-full max-w-xs transition-all duration-150"
       >
         <Search className="h-4 w-4" />
-        <span className="hidden sm:inline">Search...</span>
-        <kbd className="ml-auto text-[11px] border border-border rounded px-1 py-0.5 hidden sm:inline">
+        <span className="hidden sm:inline">Search or switch theme...</span>
+        <span className="inline sm:hidden">Search...</span>
+        <kbd className="ml-auto text-[10px] border border-white/15 rounded px-1.5 py-0.5 hidden sm:inline font-mono">
           ⌘K
         </kbd>
       </button>
@@ -201,11 +226,11 @@ export function CommandPalette() {
             onClick={close}
           />
           <div
-            className="relative w-full max-w-lg rounded-lg border border-border bg-surface shadow-modal overflow-hidden animate-scale-in"
+            className="relative w-full max-w-lg rounded-xl border border-white/10 bg-surface shadow-2xl overflow-hidden animate-scale-in"
             onKeyDown={onKeyDown}
           >
             <div className="flex items-center gap-2 px-4 border-b border-border">
-              <Search className="h-4 w-4 text-faint shrink-0" />
+              <Search className="h-4 w-4 text-white/40 shrink-0" />
               <input
                 ref={inputRef}
                 value={query}
@@ -213,15 +238,15 @@ export function CommandPalette() {
                   setQuery(e.target.value);
                   setActiveIndex(0);
                 }}
-                placeholder="Search your workspace or jump to..."
+                placeholder="Search workspace, jump to, or type 'theme'..."
                 aria-label="Search"
                 autoComplete="off"
-                className="w-full h-12 bg-transparent text-sm text-white placeholder:text-faint outline-none"
+                className="w-full h-12 bg-transparent text-sm text-white placeholder:text-white/40 outline-none"
               />
               {searching && (
-                <Loader2 className="h-3.5 w-3.5 text-faint animate-spin shrink-0" />
+                <Loader2 className="h-3.5 w-3.5 text-white/40 animate-spin shrink-0" />
               )}
-              <kbd className="text-[11px] border border-border rounded px-1 py-0.5 text-faint shrink-0">
+              <kbd className="text-[11px] border border-border rounded px-1.5 py-0.5 text-white/40 shrink-0">
                 esc
               </kbd>
             </div>
@@ -229,8 +254,8 @@ export function CommandPalette() {
             <div className="max-h-80 overflow-y-auto p-1.5">
               {flatNav.length === 0 && remoteResults.length === 0 ? (
                 <div className="px-3 py-8 text-center">
-                  <SearchX className="h-5 w-5 text-faint mx-auto mb-2" />
-                  <p className="text-sm text-faint">
+                  <SearchX className="h-5 w-5 text-white/30 mx-auto mb-2" />
+                  <p className="text-sm text-white/50">
                     {searching
                       ? "Searching…"
                       : `No matches for “${query}”`}
@@ -239,8 +264,8 @@ export function CommandPalette() {
               ) : (
                 <>
                   {flatNav.length > 0 && (
-                    <p className="px-3 pt-1.5 pb-1 text-[11px] font-medium uppercase tracking-wider text-faint">
-                      Go to
+                    <p className="px-3 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                      Commands &amp; Themes
                     </p>
                   )}
                   {flatNav.map(({ command }) => {
@@ -252,21 +277,21 @@ export function CommandPalette() {
                         key={command.id}
                         type="button"
                         onMouseEnter={() => setActiveIndex(i)}
-                        onClick={() => go(command.href)}
+                        onClick={() => handleSelect(command)}
                         className={cn(
-                          "w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm transition-colors",
+                          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
                           i === activeIndex
-                            ? "bg-accent/10 text-accent"
+                            ? "bg-primary/10 text-primary font-medium"
                             : "text-white/70 hover:text-white"
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span className="flex-1 text-left">{command.label}</span>
                         {command.hint && (
-                          <span className="text-[11px] text-faint">{command.hint}</span>
+                          <span className="text-[11px] text-white/40 font-mono">{command.hint}</span>
                         )}
                         {i === activeIndex && (
-                          <CornerDownLeft className="h-3.5 w-3.5 text-faint" />
+                          <CornerDownLeft className="h-3.5 w-3.5 text-primary" />
                         )}
                       </button>
                     );
@@ -285,11 +310,14 @@ export function CommandPalette() {
                         key={`${r.typeLabel}-${r.id}`}
                         type="button"
                         onMouseEnter={() => setActiveIndex(i)}
-                        onClick={() => go(r.href)}
+                        onClick={() => {
+                          close();
+                          router.push(r.href);
+                        }}
                         className={cn(
-                          "w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm transition-colors",
+                          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
                           i === activeIndex
-                            ? "bg-accent/10 text-accent"
+                            ? "bg-primary/10 text-primary font-medium"
                             : "text-white/70 hover:text-white"
                         )}
                       >
