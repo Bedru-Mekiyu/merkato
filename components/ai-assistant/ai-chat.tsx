@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Loader2, RotateCcw, User } from "lucide-react";
+import { Send, Sparkles, Loader2, RotateCcw, User, Bot, Zap, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -109,77 +109,101 @@ export function AiChat({
     inputRef.current?.focus();
   }
 
-  // Simple markdown -> plain render for AI responses (bold, bullets, code)
   function renderContent(text: string) {
     const lines = text.split("\n");
     return lines.map((line, i) => {
-      // Code block line
-      if (line.startsWith("```")) return <div key={i} className="font-mono text-xs text-white/60">{line}</div>;
-      // Heading
-      if (line.startsWith("### ")) return <p key={i} className="font-semibold text-white mt-3 mb-1">{line.slice(4)}</p>;
-      if (line.startsWith("## ")) return <p key={i} className="font-bold text-white mt-3 mb-1 text-base">{line.slice(3)}</p>;
-      // List item
-      if (line.startsWith("- ") || line.startsWith("• ")) {
-        return <div key={i} className="flex gap-2 my-0.5"><span className="text-accent mt-0.5 shrink-0">·</span><span>{line.slice(2)}</span></div>;
+      if (line.startsWith("`")) {
+        return (
+          <div key={i} className="font-mono text-xs bg-black/40 border border-white/10 p-2.5 rounded-lg my-2 text-white/80 overflow-x-auto">
+            {line.replace(/`[a-z]*/, "")}
+          </div>
+        );
+      }
+      if (line.startsWith("### ")) {
+        return <h3 key={i} className="font-bold text-white text-sm sm:text-base mt-3.5 mb-1.5">{line.slice(4)}</h3>;
+      }
+      if (line.startsWith("## ")) {
+        return <h2 key={i} className="font-bold text-white text-base sm:text-lg mt-4 mb-2">{line.slice(3)}</h2>;
+      }
+      if (line.startsWith("# ")) {
+        return <h1 key={i} className="font-bold text-white text-lg sm:text-xl mt-4 mb-2">{line.slice(2)}</h1>;
+      }
+      if (line.startsWith("- ") || line.startsWith("• ") || line.startsWith("* ")) {
+        return (
+          <div key={i} className="flex items-start gap-2 my-1">
+            <span className="text-primary mt-1 text-xs shrink-0">●</span>
+            <span className="text-white/90 text-sm leading-relaxed">{line.slice(2)}</span>
+          </div>
+        );
       }
       if (line === "") return <div key={i} className="h-2" />;
-      // Bold
-      const boldified = line.replace(/\*\*([^*]+)\*\*/g, "[[B]]$1[[/B]]");
+
+      const boldified = line.replace(/\*\*([^*]+)\*\*/g, "[[B]][[/B]]");
       const parts = boldified.split(/\[\[B\]\]|\[\[\/B\]\]/);
       return (
-        <p key={i} className="leading-relaxed">
-          {parts.map((part, j) => j % 2 === 1 ? <strong key={j}>{part}</strong> : part)}
+        <p key={i} className="leading-relaxed text-sm text-white/90 my-1">
+          {parts.map((part, j) => (j % 2 === 1 ? <strong key={j} className="text-white font-semibold">{part}</strong> : part))}
         </p>
       );
     });
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 shrink-0 bg-header">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-md flex items-center justify-center flex-shrink-0 bg-accent/10">
-            <Sparkles className="h-4 w-4 text-accent" />
+    <div className="flex flex-col h-full bg-background/50">
+      {/* Modern-Thin Header */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/[0.08] shrink-0 bg-surface/40 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_12px_var(--primary-glow)] shrink-0">
+            <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold whitespace-nowrap text-white">AI Assistant</h1>
-            <p className="text-xs text-muted-foreground opacity-60">Org-aware · Powered by ox-alpha</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-bold text-white tracking-tight">AI Assistant</h1>
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                OpenCode Free AI
+              </span>
+            </div>
+            <p className="text-[11px] text-white/50">Org-aware live intelligence session</p>
           </div>
         </div>
+
         {messages.length > 0 && (
           <button
+            type="button"
             onClick={clearChat}
-            className="flex items-center gap-1.5 text-xs text-muted hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-xs text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
-            New chat
+            <RotateCcw className="h-3 w-3" />
+            <span>New chat</span>
           </button>
         )}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-3xl mx-auto w-full">
-{messages.length === 0 && (
-          <div className="text-center py-10">
-            <div className="h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-5 bg-accent/5">
-              <Sparkles className="h-6 w-6 text-accent" />
+      {/* Messages Scroll Area */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 max-w-3xl mx-auto w-full">
+        {messages.length === 0 && (
+          <div className="text-center py-10 animate-fade-in-up">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary border border-white/20 flex items-center justify-center text-white mx-auto mb-4 shadow-[0_0_20px_var(--primary-glow)]">
+              <Sparkles className="h-6 w-6" />
             </div>
-            <h2 className="text-lg font-semibold text-white mb-2">
+            <h2 className="text-xl font-bold text-white tracking-tight mb-1.5">
               Hello, {userName}
             </h2>
-            <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">
-              I have live context from your workspace — deals, tasks, tickets,
-              and recent activity. Ask me anything.
+            <p className="text-xs text-white/60 max-w-md mx-auto leading-relaxed">
+              I have full real-time awareness of your workspace — deals, sprint tasks, support tickets, and team channels. Ask me anything.
             </p>
-            <div className="grid grid-cols-2 gap-2 justify-center max-w-sm mx-auto pt-4">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto pt-6 text-left">
               {suggestedPrompts.map((prompt) => (
                 <button
                   key={prompt}
+                  type="button"
                   onClick={() => sendMessage(prompt)}
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-white/80 border border-border/30 hover:border-white/20 hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="rounded-xl p-3 text-xs font-medium text-white/80 border border-white/[0.08] bg-surface/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-150 active:scale-[0.98] flex items-center gap-2 group"
                 >
-                  {prompt}
+                  <Zap className="h-3.5 w-3.5 text-primary shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="truncate">{prompt}</span>
                 </button>
               ))}
             </div>
@@ -190,63 +214,69 @@ export function AiChat({
           <div
             key={i}
             className={cn(
-              "flex gap-3 items-start",
+              "flex gap-3 items-start animate-fade-in-up",
               msg.role === "user" && "flex-row-reverse"
             )}
           >
             <div
               className={cn(
-                "h-9 w-9 rounded-2xl flex items-center justify-center shrink-0 mt-0 flex-shrink-0",
+                "h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold shadow-sm",
                 msg.role === "assistant"
-                  ? "bg-accent text-accent"
-                  : "bg-white/20 border border-white/10"
+                  ? "bg-gradient-to-br from-primary to-secondary border border-white/20 text-white shadow-[0_0_12px_var(--primary-glow)]"
+                  : "bg-white/10 border border-white/20 text-white"
               )}
             >
-              {msg.role === "assistant"
-                ? <Sparkles className="h-4 w-4 lines text-accent" />
-                : <User className="h-4 w-4 text-white/70" />
-              }
+              {msg.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4 text-white/80" />}
             </div>
+
             <div
-              className="flex-1 min-w[0%] rounded-xl px-4 py-3 text-sm msg msg-bubble"
-              style={{ flex: "1 1 calc(85% - 2rem)" }}
+              className={cn(
+                "rounded-2xl px-4 sm:px-5 py-3.5 text-sm max-w-[88%] leading-relaxed",
+                msg.role === "assistant"
+                  ? "bg-surface/85 border border-white/[0.08] text-white shadow-xl backdrop-blur-md rounded-tl-sm"
+                  : "bg-primary text-white shadow-md rounded-tr-sm"
+              )}
             >
               {msg.role === "assistant" ? (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {renderContent(msg.content)}
                   {msg.streaming && (
-                    <span className="h-0.5 w-1/2 rounded bg-accent animate-pulse" />
+                    <span className="inline-block h-3.5 w-1 rounded bg-primary animate-pulse ml-1 align-middle" />
                   )}
                 </div>
               ) : (
-                <p className="leading-relaxed break-words">{msg.content}</p>
+                <p className="whitespace-pre-wrap">{msg.content}</p>
               )}
             </div>
           </div>
         ))}
 
         {error && (
-          <div className="rounded-xl px-4 py-3 text-sm max-w-lg bg-danger/10 border border-danger/20 text-white">
-            <svg className="h-4 w-4 flex-shrink-0 mr-2 opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path className="stroke-2" d="M10 14l2-2m0 2l2-2m-2-2l2 2m2 2l-2-2m2-2l2 2m7-4h.01M7 7l5 5m0 0l-5 5m5-5H9"/></svg>
-            <strong className="inline-block mb-1.5 text-lg">AI Assistant unavailable.</strong>
-            <p className="text-muted-foreground text-sm">{error.includes("OX_ALPHA_API_KEY")
-              ? "This feature isn't configured yet — ask your workspace admin to enable it in Settings."
-              : error}</p>
+          <div className="rounded-xl px-4 py-3 text-xs bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => sendMessage(messages[messages.length - 1]?.content ?? "retry")}
+              className="text-xs font-semibold text-rose-300 underline ml-2"
+            >
+              Retry
+            </button>
           </div>
         )}
 
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-border/50 px-6 py-4 bg-card">
+      {/* Input Bar */}
+      <div className="border-t border-white/[0.08] px-4 sm:px-6 py-4 bg-surface/50 backdrop-blur-md">
         {messages.length > 0 && !loading && (
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="flex flex-wrap gap-1.5 mb-3 max-w-3xl mx-auto">
             {suggestedPrompts.slice(0, 3).map((prompt) => (
               <button
                 key={prompt}
+                type="button"
                 onClick={() => sendMessage(prompt)}
-                className="rounded-md px-3 py-1.5 text-xs font-medium text-white/80 border border-border/30 hover:border-white/20 hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                className="rounded-lg px-2.5 py-1 text-[11px] font-medium text-white/70 border border-white/[0.08] bg-white/[0.02] hover:border-primary/40 hover:bg-white/[0.05] transition-all"
               >
                 {prompt}
               </button>
@@ -254,24 +284,28 @@ export function AiChat({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex items-center gap-2">
           <input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask anything about your workspace..."
+            placeholder="Ask anything about deals, tasks, tickets, or team activity..."
             disabled={loading}
-            className="flex-1 rounded-xl px-4 py-2.5 bg-surface border border-border text-sm text-white placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-colors"
+            className="flex-1 h-11 px-4 rounded-xl bg-black/40 border border-white/10 text-sm text-white placeholder:text-white/35 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="rounded-lg px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="h-11 px-4 sm:px-5 flex items-center justify-center gap-2 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover disabled:opacity-40 transition-all duration-150 active:scale-95 shadow-[0_0_15px_var(--primary-glow)] shrink-0"
           >
-            {loading
-              ? <Loader2 className="h-4 w-4 animate-spin" />
-              : <Send className="h-4 w-4" />
-            }
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                <span className="text-xs font-semibold hidden sm:inline">Ask AI</span>
+              </>
+            )}
           </button>
         </form>
       </div>

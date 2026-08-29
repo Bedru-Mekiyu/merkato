@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CreateWorkspaceForm } from "@/components/auth/create-workspace-form";
+import { MerkatoMark } from "@/components/ui/brand-logo";
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
@@ -21,20 +22,19 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="h-10 w-10 rounded-sm bg-accent flex items-center justify-center text-white font-bold mx-auto mb-4">
-            M
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background selection:bg-primary/30">
+      <div className="w-full max-w-[380px] animate-fade-in-up">
+        <div className="rounded-xl border border-white/[0.08] bg-surface p-6 sm:p-7 shadow-xl">
+          <div className="mb-5">
+            <h1 className="text-lg font-semibold text-white tracking-tight">
+              Create workspace
+            </h1>
+            <p className="text-xs text-white/50 mt-1">
+              Choose a name for your team or organization.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1.5">
-            Create your workspace
-          </h1>
-          <p className="text-sm text-muted">
-            This is where your team, CRM, and projects will live.
-          </p>
+          <CreateWorkspaceForm />
         </div>
-        <CreateWorkspaceForm />
       </div>
     </div>
   );
