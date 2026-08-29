@@ -49,14 +49,14 @@ export function ChannelSidebar({
   }
 
   return (
-    <div className="w-56 border-r border-border flex flex-col shrink-0">
-      <div className="px-3 py-3 flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-faint uppercase tracking-wide">
+    <div className="w-60 border-r border-white/[0.08] bg-surface/50 flex flex-col shrink-0">
+      <div className="px-3.5 py-3 flex items-center justify-between">
+        <h3 className="text-[11px] font-bold text-white/50 uppercase tracking-wider">
           Channels
         </h3>
         <button
           onClick={() => setOpen(true)}
-          className="h-5 w-5 flex items-center justify-center rounded text-faint hover:text-white hover:bg-white/5"
+          className="h-6 w-6 flex items-center justify-center rounded-md text-white/50 hover:text-white hover:bg-white/[0.06] transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>
@@ -70,8 +70,8 @@ export function ChannelSidebar({
               key={c.id}
               href={`/team/channels/${c.id}`}
               className={cn(
-                "flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-sm transition-colors",
-                active ? "bg-accent/10 text-accent" : "text-white/70 hover:bg-white/5 hover:text-white"
+                "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                active ? "bg-primary/10 text-primary font-semibold" : "text-white/70 hover:bg-white/[0.04] hover:text-white"
               )}
             >
               <Hash className="h-3.5 w-3.5 shrink-0" />
@@ -80,12 +80,12 @@ export function ChannelSidebar({
           );
         })}
         {channels.length === 0 && (
-          <p className="text-xs text-faint px-2.5 py-1">No channels yet.</p>
+          <p className="text-[11px] text-white/40 px-2.5 py-1">No channels yet.</p>
         )}
       </div>
 
-      <div className="px-3 py-2">
-        <h3 className="text-xs font-semibold text-faint uppercase tracking-wide">
+      <div className="px-3.5 py-2">
+        <h3 className="text-[11px] font-bold text-white/50 uppercase tracking-wider">
           Direct Messages
         </h3>
       </div>
@@ -97,11 +97,11 @@ export function ChannelSidebar({
               key={dm.userId}
               href={`/team/dm/${dm.userId}`}
               className={cn(
-                "flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-sm transition-colors",
-                active ? "bg-accent/10 text-accent" : "text-white/70 hover:bg-white/5 hover:text-white"
+                "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                active ? "bg-primary/10 text-primary font-semibold" : "text-white/70 hover:bg-white/[0.04] hover:text-white"
               )}
             >
-              <span className="h-4 w-4 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-[9px] font-medium text-accent shrink-0">
+              <span className="h-4 w-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
                 {dm.name.charAt(0).toUpperCase()}
               </span>
               <span className="truncate">{dm.name}</span>
@@ -109,7 +109,7 @@ export function ChannelSidebar({
           );
         })}
         {dms.length === 0 && (
-          <p className="text-xs text-faint px-2.5 py-1">
+          <p className="text-[11px] text-white/40 px-2.5 py-1">
             Message someone from the Directory tab.
           </p>
         )}

@@ -45,31 +45,34 @@ export function TicketQueue({
   }
 
   return (
-    <div className="px-6 sm:px-8 py-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-5">
+    <div className="px-4 sm:px-8 py-6 max-w-5xl mx-auto space-y-6 animate-fade-in-up">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
         <div>
-          <h1 className="text-lg font-semibold text-white">Support</h1>
-          <p className="text-sm text-muted">
-            {tickets.length} ticket{tickets.length === 1 ? "" : "s"} total
+          <h1 className="text-xl font-bold text-white tracking-tight">Customer Support Queue</h1>
+          <p className="text-xs text-white/50 mt-0.5">
+            {tickets.length} ticket{tickets.length === 1 ? "" : "s"} across active workspace queues
           </p>
         </div>
         <button
+          type="button"
           onClick={copyPortalLink}
-          className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-white border border-border rounded-sm px-2.5 py-1.5 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white border border-white/10 bg-white/[0.04] rounded-lg px-3 py-1.5 transition-all hover:bg-white/[0.08] active:scale-95"
         >
-          {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}
-          {copied ? "Copied" : "Copy customer portal link"}
+          {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-primary" />}
+          <span>{copied ? "Copied Link" : "Copy Customer Portal Link"}</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-1 mb-5 border border-border rounded-sm p-1 w-fit bg-surface">
+      <div className="flex items-center gap-1 border border-white/[0.08] rounded-xl p-1 w-fit bg-surface/60 backdrop-blur-md">
         {(["open", "pending", "resolved", "all"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={cn(
-              "px-3 py-1.5 rounded-sm text-sm font-medium capitalize transition-colors",
-              filter === f ? "bg-accent/10 text-accent" : "text-muted hover:text-white"
+              "px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all duration-150 active:scale-95",
+              filter === f
+                ? "bg-primary text-white shadow-sm"
+                : "text-white/60 hover:text-white hover:bg-white/[0.04]"
             )}
           >
             {f}
@@ -78,53 +81,87 @@ export function TicketQueue({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center text-center py-16 border border-border rounded-md bg-surface">
-          <LifeBuoy className="h-5 w-5 text-faint mb-2" />
-          <p className="text-sm text-muted">No {filter !== "all" ? filter : ""} tickets.</p>
+        <div className="flex flex-col items-center text-center py-16 border border-white/[0.08] rounded-2xl bg-surface/50">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3 text-primary">
+            <LifeBuoy className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-bold text-white mb-1">No {filter !== "all" ? filter : ""} tickets</p>
+          <p className="text-xs text-white/50 max-w-xs">
+            Customer inquiries submitted through your public portal will appear here automatically.
+          </p>
         </div>
       ) : (
-        <div className="border border-border rounded-md bg-surface overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="px-4 py-2.5 text-xs font-medium text-muted">Subject</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-muted">Customer</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-muted">Status</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-muted">Priority</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-muted">Assigned to</th>
-                <th className="px-4 py-2.5 text-xs font-medium text-muted">Updated</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((ticket) => (
-                <tr
-                  key={ticket.id}
-                  className="hover:bg-white/[0.02] cursor-pointer"
-                  onClick={() => (window.location.href = `/support/tickets/${ticket.id}`)}
-                >
-                  <td className="px-4 py-3">
-                    <Link href={`/support/tickets/${ticket.id}`} className="text-white font-medium hover:text-accent">
-                      {ticket.subject}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted">{ticket.customer_name}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={statusBadge[ticket.status]} className="capitalize">
-                      {ticket.status}
-                    </Badge>
-                  </td>
-                  <td className={cn("px-4 py-3 capitalize text-xs font-medium", priorityColor[ticket.priority])}>
+        <>
+          {/* Mobile Card View (Phone / Small Tablet) */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {filtered.map((ticket) => (
+              <Link
+                key={ticket.id}
+                href={`/support/tickets/${ticket.id}`}
+                className="block p-4 rounded-xl border border-white/[0.08] bg-surface/75 backdrop-blur-sm hover:border-white/20 transition-all shadow-sm group"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="text-sm font-bold text-white group-hover:text-primary transition-colors">
+                    {ticket.subject}
+                  </h3>
+                  <Badge variant={statusBadge[ticket.status]} className="capitalize shrink-0">
+                    {ticket.status}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono text-white/50 pt-2 border-t border-white/[0.06]">
+                  <span>{ticket.customer_name}</span>
+                  <span className={cn("font-semibold capitalize", priorityColor[ticket.priority])}>
                     {ticket.priority}
-                  </td>
-                  <td className="px-4 py-3 text-muted">{ticket.assignee_name ?? "Unassigned"}</td>
-                  <td className="px-4 py-3 text-muted">
-                    {new Date(ticket.updated_at).toLocaleDateString()}
-                  </td>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop / Tablet Table View */}
+          <div className="hidden md:block rounded-2xl border border-white/[0.08] bg-surface/75 backdrop-blur-sm overflow-hidden shadow-sm">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-white/[0.06] bg-white/[0.02] text-white/50 uppercase font-mono tracking-wider">
+                  <th className="px-5 py-3.5 font-semibold">Subject</th>
+                  <th className="px-5 py-3.5 font-semibold">Customer</th>
+                  <th className="px-5 py-3.5 font-semibold">Status</th>
+                  <th className="px-5 py-3.5 font-semibold">Priority</th>
+                  <th className="px-5 py-3.5 font-semibold">Assigned To</th>
+                  <th className="px-5 py-3.5 font-semibold">Updated</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-white/[0.06]">
+                {filtered.map((ticket) => (
+                  <tr
+                    key={ticket.id}
+                    className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                    onClick={() => (window.location.href = `/support/tickets/${ticket.id}`)}
+                  >
+                    <td className="px-5 py-3.5 font-semibold text-white group-hover:text-primary transition-colors">
+                      <Link href={`/support/tickets/${ticket.id}`}>
+                        {ticket.subject}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-3.5 text-white/60 font-mono">{ticket.customer_name}</td>
+                    <td className="px-5 py-3.5">
+                      <Badge variant={statusBadge[ticket.status]} className="capitalize">
+                        {ticket.status}
+                      </Badge>
+                    </td>
+                    <td className={cn("px-5 py-3.5 capitalize font-mono font-semibold", priorityColor[ticket.priority])}>
+                      {ticket.priority}
+                    </td>
+                    <td className="px-5 py-3.5 text-white/60 font-mono">{ticket.assignee_name ?? "Unassigned"}</td>
+                    <td className="px-5 py-3.5 text-white/40 font-mono">
+                      {new Date(ticket.updated_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
