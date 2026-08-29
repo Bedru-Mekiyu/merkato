@@ -2,12 +2,116 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
-function generateOpenCodeResponse(query: string, context: string, userName: string): string {
-  const q = query.toLowerCase();
-  const hasDeals = context.includes("Open deals (");
-  const hasTasks = context.includes("Urgent open tasks (");
-  const hasTickets = context.includes("Open support tickets (");
+export const dynamic = "force-dynamic";
 
+interface WorkspaceMetrics {
+  deals: {
+    total: number;
+    totalValue: number;
+    byStage: Record<string, number>;
+    topDeals: { title: string; value: number; stage: string }[];
+  };
+  tasks: {
+    total: number;
+    byStatus: Record<string, number>;
+    urgentTasks: { title: string; priority: string; status: string }[];
+  };
+  tickets: {
+    total: number;
+    open: number;
+    urgentTickets: { subject: string; priority: string; status: string }[];
+  };
+  articlesCount: number;
+  membersCount: number;
+}
+
+async function fetchRealWorkspaceMetrics(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  orgId: string
+): Promise<WorkspaceMetrics> {
+  const [
+    { data: deals },
+    { data: tasks },
+    { data: tickets },
+    { count: articlesCount },
+    { count: membersCount },
+  ] = await Promise.all([
+    supabase
+      .from("crm_deals")
+      .select("title, value, stage")
+      .eq("organization_id", orgId),
+    supabase
+      .from("project_tasks")
+      .select("title, priority, status")
+      .eq("organization_id", orgId),
+    supabase
+      .from("support_tickets")
+      .select("subject, priority, status")
+      .eq("organization_id", orgId),
+    supabase
+      .from("kb_articles")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+    supabase
+      .from("organization_members")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+  ]);
+
+  const dealList = deals ?? [];
+  const totalValue = dealList.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  const byStage: Record<string, number> = {};
+  dealList.forEach((d) => {
+    byStage[d.stage] = (byStage[d.stage] || 0) + 1;
+  });
+
+  const taskList = tasks ?? [];
+  const byStatus: Record<string, number> = {};
+  taskList.forEach((t) => {
+    byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+  });
+  const urgentTasks = taskList.filter((t) => t.priority === "urgent" && t.status !== "done");
+
+  const ticketList = tickets ?? [];
+  const openTickets = ticketList.filter((t) => t.status === "open" || t.status === "pending");
+  const urgentTickets = ticketList.filter(
+    (t) => (t.priority === "urgent" || t.priority === "high") && t.status !== "closed"
+  );
+
+  return {
+    deals: {
+      total: dealList.length,
+      totalValue,
+      byStage,
+      topDeals: dealList
+        .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
+        .slice(0, 5)
+        .map((d) => ({ title: d.title, value: Number(d.value) || 0, stage: d.stage })),
+    },
+    tasks: {
+      total: taskList.length,
+      byStatus,
+      urgentTasks: urgentTasks.slice(0, 5),
+    },
+    tickets: {
+      total: ticketList.length,
+      open: openTickets.length,
+      urgentTickets: urgentTickets.slice(0, 5),
+    },
+    articlesCount: articlesCount ?? 0,
+    membersCount: membersCount ?? 0,
+  };
+}
+
+function synthesizeWorkspaceReport(
+  query: string,
+  metrics: WorkspaceMetrics,
+  userName: string,
+  orgName: string
+): string {
+  const q = query.toLowerCase().trim();
+
+  // 1. CRM & Pipeline Queries
   if (
     q.includes("crm") ||
     q.includes("pipeline") ||
@@ -16,25 +120,38 @@ function generateOpenCodeResponse(query: string, context: string, userName: stri
     q.includes("sales") ||
     q.includes("forecast")
   ) {
+    const stageBreakdown = Object.entries(metrics.deals.byStage)
+      .map(([stage, count]) => `  - **${stage.replace("_", " ")}**: ${count} deal${count > 1 ? "s" : ""}`)
+      .join("\n");
+
+    const topDealsList = metrics.deals.topDeals.length
+      ? metrics.deals.topDeals
+          .map((d) => `  - **${d.title}**: $${d.value.toLocaleString()} *(${d.stage.replace("_", " ")})*`)
+          .join("\n")
+      : "  - *No deals created yet.*";
+
     return [
-      "### 💼 CRM Pipeline Summary",
+      `### 💼 Real-Time CRM Pipeline Analysis (${orgName})`,
       "",
-      "Here is a breakdown of your current deal pipeline and revenue velocity:",
+      `**Active Pipeline Metrics:**`,
+      `- **Total Pipeline Valuation:** $${metrics.deals.totalValue.toLocaleString()}`,
+      `- **Total Recorded Deals:** ${metrics.deals.total}`,
       "",
-      "**Key Pipeline Insights:**",
-      `- **Active Pipeline Status:** ${hasDeals ? "Multiple high-velocity deals are in active stages." : "No open deals are currently blocking pipeline throughput."}`,
-      "- **Stage Distribution:** Deals are progressing across Qualified, Proposal, and Negotiation stages.",
-      "- **Conversion Strategy:** Prioritize accounts with decision-makers engaged in technical reviews.",
+      `**Stage Distribution:**`,
+      stageBreakdown || "  - *No deals currently in pipeline.*",
       "",
-      "**Actionable Recommendations:**",
-      "1. **Schedule Stakeholder Check-ins:** Follow up with leads in the *Proposal* or *Negotiation* stage within 24 hours.",
-      "2. **Review High-Value Accounts:** Ensure custom pricing and enterprise SLA terms are verified.",
-      "3. **Pipeline Hygiene:** Keep deal stages and expected close dates updated to maintain accurate forecasting.",
+      `**Top High-Value Deals:**`,
+      topDealsList,
       "",
-      "*Let me know if you would like me to draft a follow-up email or calculate stage conversion metrics.*",
+      `**Actionable Recommendations:**`,
+      `1. Focus follow-ups on high-value proposals to accelerate monthly pipeline throughput.`,
+      `2. Update stage progression in the visual CRM Board at \`/crm/deals\`.`,
+      "",
+      `> ℹ️ *Synthesized directly from live PostgreSQL CRM records.*`,
     ].join("\n");
   }
 
+  // 2. Sprint & Task Queries
   if (
     q.includes("task") ||
     q.includes("urgent") ||
@@ -43,25 +160,38 @@ function generateOpenCodeResponse(query: string, context: string, userName: stri
     q.includes("backlog") ||
     q.includes("project")
   ) {
+    const statusBreakdown = Object.entries(metrics.tasks.byStatus)
+      .map(([st, count]) => `  - **${st.replace("_", " ")}**: ${count} task${count > 1 ? "s" : ""}`)
+      .join("\n");
+
+    const urgentList = metrics.tasks.urgentTasks.length
+      ? metrics.tasks.urgentTasks
+          .map((t) => `  - 🚨 **${t.title}** *(${t.status.replace("_", " ")})*`)
+          .join("\n")
+      : "  - *No urgent blockers identified at this moment.*";
+
     return [
-      "### ⚡ Urgent Sprint & Task Priorities",
+      `### ⚡ Sprint & Task Velocity (${orgName})`,
       "",
-      "Here are the highest-impact items your team should focus on today:",
+      `**Task Health Summary:**`,
+      `- **Total Workspace Tasks:** ${metrics.tasks.total}`,
+      `- **Urgent Active Blocker Tasks:** ${metrics.tasks.urgentTasks.length}`,
       "",
-      "**1. High-Priority Execution Items:**",
-      `- **Urgent Tasks:** ${hasTasks ? "Review the open urgent tasks listed in your workspace context." : "No critical urgent blockers identified at this moment."}`,
-      "- **Sprint Momentum:** Ensure in-progress tasks have clear owners and active branch reviews.",
-      "- **Blocker Resolution:** Unblock any dependencies between frontend UI polish and backend schema migrations.",
+      `**Task Status Breakdown:**`,
+      statusBreakdown || "  - *No tasks currently in backlog.*",
       "",
-      "**Recommended Daily Action Plan:**",
-      "- **Morning Standup:** Align on top 2 critical tasks per team member.",
-      "- **Midday Check-in:** Verify that urgent items are moving toward the *Review* or *Done* column on the Kanban board.",
-      "- **Quality Assurance:** Run test suites before merging critical path features.",
+      `**Urgent Items Requiring Attention:**`,
+      urgentList,
       "",
-      "*Would you like me to generate a task breakdown or summarize assignees?*",
+      `**Sprint Momentum Checklist:**`,
+      `- Review unassigned tasks in the Kanban Board at \`/projects\`.`,
+      `- Ensure code review turnaround times are under 4 hours for urgent tasks.`,
+      "",
+      `> ℹ️ *Synthesized directly from live PostgreSQL Sprint records.*`,
     ].join("\n");
   }
 
+  // 3. Customer Support & Tickets Queries
   if (
     q.includes("support") ||
     q.includes("ticket") ||
@@ -69,90 +199,167 @@ function generateOpenCodeResponse(query: string, context: string, userName: stri
     q.includes("issue") ||
     q.includes("helpdesk")
   ) {
+    const urgentTicketsList = metrics.tickets.urgentTickets.length
+      ? metrics.tickets.urgentTickets
+          .map((t) => `  - 🎫 **${t.subject}** *([${t.priority}] ${t.status})*`)
+          .join("\n")
+      : "  - *All high-priority tickets are currently resolved.*";
+
     return [
-      "### 🎫 Customer Support & Ticket Overview",
+      `### 🎫 Customer Support Queue Health (${orgName})`,
       "",
-      "Here is the current status of your customer support queue:",
+      `**Helpdesk Metrics:**`,
+      `- **Total Inbound Tickets:** ${metrics.tickets.total}`,
+      `- **Open / Pending Tickets:** ${metrics.tickets.open}`,
+      `- **High / Urgent Priority:** ${metrics.tickets.urgentTickets.length}`,
       "",
-      "**Queue Health & SLA Status:**",
-      `- **Open Tickets:** ${hasTickets ? "Customer inquiries are active and waiting for team triage." : "The customer support queue is clear with zero outstanding urgent tickets."}`,
-      "- **Response Velocity:** Prioritize tickets with urgent or high-severity tags to maintain sub-1-hour first response times.",
-      "- **Knowledge Base Alignment:** Check if incoming tickets can be resolved with existing Knowledge Base articles.",
+      `**Priority Support Items:**`,
+      urgentTicketsList,
       "",
-      "**Next Steps for Support:**",
-      "1. Assign open tickets to the relevant product or engineering owner.",
-      "2. Resolve pending items with high customer impact.",
-      "3. Publish updated documentation for common user inquiries.",
+      `**SLA Operations:**`,
+      `1. Triage open tickets in the support queue at \`/support\`.`,
+      `2. Keep internal notes database-isolated from customer portal views.`,
+      `3. Resolve recurring questions with Knowledge Base articles.`,
+      "",
+      `> ℹ️ *Synthesized directly from live PostgreSQL Support records.*`,
     ].join("\n");
   }
 
+  // 4. Platform Architecture & What is Merkato
   if (
-    q.includes("prioritize") ||
-    q.includes("today") ||
-    q.includes("status report") ||
-    q.includes("weekly") ||
-    q.includes("summary") ||
-    q.includes("happening") ||
-    q.includes("brief")
+    q.includes("what is merkato") ||
+    q.includes("how does merkato work") ||
+    q.includes("what does this platform do") ||
+    q.includes("feature") ||
+    q.includes("module") ||
+    q.includes("architecture")
   ) {
     return [
-      "### 🎯 Executive Workspace Briefing",
+      `### 🚀 About Merkato Startup OS (${orgName})`,
       "",
-      `Good day ${userName}! Here is your synthesized operational briefing for today:`,
+      `Merkato is the unified operating platform engineered with **Next.js 14** and **Supabase PostgreSQL**. It consolidates your startup's core operations into one system:`,
       "",
-      "#### 1. 💼 Commercial Focus (CRM)",
-      "- Keep pipeline momentum high by touching active deals before end-of-week.",
-      "- Ensure all recent inbound inquiries are assigned and tracked.",
+      `1. **💼 CRM Pipeline (\`/crm\`):** 6-stage drag-and-drop deals, accounts, and contact timelines. (Currently: **${metrics.deals.total} deals**, **$${metrics.deals.totalValue.toLocaleString()}** in pipeline).`,
+      `2. **⚡ Agile Sprint Boards (\`/projects\`):** Kanban boards, task checklists, priorities, and assignees. (Currently: **${metrics.tasks.total} tasks**).`,
+      `3. **💬 Real-Time Team Channels (\`/team\`):** WebSockets chat, direct messaging, and active presence status.`,
+      `4. **🎫 Customer Support Helpdesk (\`/support\`):** Dual-surfaced triage with a public customer portal at \`/portal/[orgSlug]\`.`,
+      `5. **📁 Secure Document Drive (\`/documents\`):** Supabase Storage uploads with versioning and 1-hour signed URLs.`,
+      `6. **📚 Knowledge Base (\`/knowledge-base\`):** Markdown documentation with draft-to-published editorial workflows. (Currently: **${metrics.articlesCount} articles**).`,
+      `7. **📊 Hand-Rolled Analytics (\`/analytics\`):** Real-time SVG charts for business revenue and velocity.`,
+      `8. **🛡️ System Health & Telemetry (\`/cluster\`):** Live database round-trip probes and edge runtime monitoring.`,
       "",
-      "#### 2. 🛠️ Engineering & Sprint Execution",
-      "- Tackle highest-priority sprint tasks on the project board.",
-      "- Maintain sub-50ms realtime synchronization across multi-tenant nodes.",
-      "",
-      "#### 3. 🤝 Team & Customer Health",
-      "- Check team presence in Channels to coordinate cross-functional milestones.",
-      "- Keep support ticket resolution rate above 95%.",
-      "",
-      "*What specific area would you like to drill into next?*",
+      `*All data is cryptographically scoped to ${orgName} via PostgreSQL Row-Level Security (RLS).*`,
     ].join("\n");
   }
 
+  // 5. Document Storage Queries
+  if (q.includes("document") || q.includes("file") || q.includes("storage") || q.includes("drive") || q.includes("s3")) {
+    return [
+      `### 📁 Document Drive & Storage System`,
+      "",
+      `The Merkato Document Drive (\`/documents\`) provides secure, tenant-isolated file management:`,
+      "",
+      `- **Storage Engine:** Backed by private Supabase S3 Storage bucket (\`documents\`).`,
+      `- **Security:** Files are downloaded via short-lived signed URLs (1-hour expiration) rather than public URLs.`,
+      `- **Automatic Versioning:** Uploading a file with the same name preserves previous revisions in \`document_versions\` with instant rollback support.`,
+      `- **Folder Structure:** Organize workspace assets into nested directories with breadcrumbs navigation.`,
+      "",
+      `*Navigate to \`/documents\` to upload or browse files.*`,
+    ].join("\n");
+  }
+
+  // 6. Security & Postgres RLS Queries
+  if (q.includes("security") || q.includes("rls") || q.includes("tenant") || q.includes("permission") || q.includes("role")) {
+    return [
+      `### 🛡️ Security Architecture & Tenancy Isolation`,
+      "",
+      `Merkato enforces security at the PostgreSQL database engine layer:`,
+      "",
+      `- **Row-Level Security (RLS):** Every query is cryptographically bounded by \`organization_id = auth.uid()\` membership check.`,
+      `- **Role Hierarchy (\`org_role\`):** Enforces \`owner\`, \`admin\`, \`member\`, and \`customer\` permissions.`,
+      `- **Internal Note Shielding:** Support ticket internal notes (\`is_internal_note = true\`) are physically blocked from customer queries by RLS policies.`,
+      `- **MFA & PKCE:** Authenticator app second-factor assurance (AAL2) and OAuth PKCE session management.`,
+      "",
+      `*View compliance records anytime at \`/audit-log\`.*`,
+    ].join("\n");
+  }
+
+  // 7. Drafting Assistance (Emails, Updates, Notes)
+  if (q.includes("draft") || q.includes("email") || q.includes("template") || q.includes("write") || q.includes("message")) {
+    return [
+      `### ✍️ Workspace Communication Draft`,
+      "",
+      `Here is a professional draft tailored for your workspace (${orgName}):`,
+      "",
+      `**Subject:** Update on recent milestones & next steps — ${orgName}`,
+      "",
+      `Hi [Name],`,
+      "",
+      `Thank you for connecting. I wanted to share a quick update regarding our ongoing initiatives at ${orgName}:`,
+      "",
+      `- **Sprint Progress:** Our team is currently tracking ${metrics.tasks.total} active sprint tasks, with urgent milestones on schedule.`,
+      `- **Commercial Milestones:** We have ${metrics.deals.total} active deals progressing through our technical and proposal review stages.`,
+      `- **Support Velocity:** Our customer operations queue is actively maintaining sub-1-hour triage turnaround times.`,
+      "",
+      `Please let me know if you would like to schedule a 15-minute sync this week to review deliverables.`,
+      "",
+      `Best regards,`,
+      `${userName}`,
+      `${orgName}`,
+      "",
+      `*Feel free to ask me to refine the tone or customize specific numbers.*`,
+    ].join("\n");
+  }
+
+  // Default: Comprehensive Dynamic Synthesis
   return [
-    "### 🤖 OpenCode Workspace Assistant",
+    `### 🎯 Executive Workspace Briefing (${orgName})`,
     "",
-    `Thank you for your question: **"${query}"**`,
+    `Good day ${userName}! Here is your synthesized operational report:`,
     "",
-    "Based on your current workspace context and operations platform:",
+    `#### 1. 💼 Commercial & Pipeline Velocity`,
+    `- **Total Pipeline Valuation:** $${metrics.deals.totalValue.toLocaleString()} across ${metrics.deals.total} deal${metrics.deals.total !== 1 ? "s" : ""}`,
+    `- Deals are active across ${Object.keys(metrics.deals.byStage).length} stages.`,
     "",
-    "**Overview & Insights:**",
-    "- Your workspace is running with full **Postgres Row-Level Security (RLS)** isolation and sub-50ms realtime synchronization.",
-    "- All workspace modules (CRM, Projects, Team Channels, Support, and Knowledge Base) are actively connected to this intelligence session.",
+    `#### 2. ⚡ Engineering & Sprint Execution`,
+    `- **Active Tasks:** ${metrics.tasks.total} total (${metrics.tasks.urgentTasks.length} urgent blockers).`,
+    `- Projects board is synchronizing via live PostgreSQL RLS.`,
     "",
-    "**Recommended Actions:**",
-    "1. **Explore Data:** Jump to the relevant section from the sidebar to inspect records directly.",
-    "2. **Automate Workflows:** Use the Command Palette (`⌘K`) to quickly search records or toggle workspace themes.",
-    "3. **Ask Follow-ups:** You can ask me to summarize deals, list urgent bugs, or outline sprint goals anytime.",
+    `#### 3. 🎫 Customer Support & Operations`,
+    `- **Support Queue:** ${metrics.tickets.open} open ticket${metrics.tickets.open !== 1 ? "s" : ""} requiring team attention.`,
+    `- **Knowledge Base:** ${metrics.articlesCount} published/draft documentation articles.`,
+    `- **Workspace Team:** ${metrics.membersCount} active team members.`,
     "",
-    "*Feel free to ask another question about your deals, tasks, tickets, or team activity.*",
+    `*You can ask me to summarize deals, list urgent bugs, explain platform architecture, or draft emails.*`,
+    "",
+    `> 💡 **Tip:** To enable generative neural reasoning, configure an \`OPENAI_API_KEY\` or \`ANTHROPIC_API_KEY\` in your environment or chat settings.`,
   ].join("\n");
 }
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("role")
+    .select("role, organization_id, organizations(id, name)")
     .eq("user_id", user.id)
     .in("role", ["owner", "admin", "member"])
     .limit(1)
     .maybeSingle();
-  if (!membership) {
+
+  if (!membership || !membership.organizations) {
     return NextResponse.json({ error: "Staff access required" }, { status: 403 });
   }
+
+  const org = Array.isArray(membership.organizations)
+    ? membership.organizations[0]
+    : (membership.organizations as { id: string; name: string });
 
   const rl = rateLimit(`ai:${user.id}`, 30);
   if (!rl.ok) {
@@ -163,7 +370,7 @@ export async function POST(req: NextRequest) {
   }
 
   const payload = await req.json();
-  const { messages, context } = payload;
+  const { messages, context, customApiKey } = payload;
 
   if (
     !Array.isArray(messages) ||
@@ -180,8 +387,9 @@ export async function POST(req: NextRequest) {
 
   const latestMessage = messages[messages.length - 1]?.content ?? "";
   const apiKey =
-    process.env.OPENCODE_API_KEY ||
+    customApiKey ||
     process.env.OPENAI_API_KEY ||
+    process.env.OPENCODE_API_KEY ||
     process.env.OPENROUTER_API_KEY ||
     process.env.GROQ_API_KEY ||
     process.env.OX_ALPHA_API_KEY;
@@ -205,7 +413,7 @@ export async function POST(req: NextRequest) {
           messages: [
             {
               role: "system",
-              content: `You are Merkato AI, the built-in intelligent assistant for the Merkato startup operations platform. Be concise, structured, and actionable.\n\nContext:\n${context ?? ""}`,
+              content: `You are Merkato AI, the intelligent workspace operations assistant for ${org.name}. Be concise, structured, actionable, and accurate.\n\nContext:\n${context ?? ""}`,
             },
             ...messages.slice(-10),
           ],
@@ -256,15 +464,18 @@ export async function POST(req: NextRequest) {
         });
       }
     } catch {
-      // Fall through to OpenCode Free AI Engine
+      // Fall through to real database-driven Workspace Intelligence synthesis
     }
   }
 
-  // Built-in OpenCode Free Streaming AI Engine
-  const aiResponseText = generateOpenCodeResponse(
+  // Real Database-Driven Workspace Intelligence Engine
+  const metrics = await fetchRealWorkspaceMetrics(supabase, org.id);
+  const userName = user.email?.split("@")[0] ?? "Team Member";
+  const synthesizedReport = synthesizeWorkspaceReport(
     latestMessage,
-    context ?? "",
-    user.email?.split("@")[0] ?? "Team Member"
+    metrics,
+    userName,
+    org.name
   );
 
   const { readable, writable } = new TransformStream();
@@ -273,11 +484,7 @@ export async function POST(req: NextRequest) {
 
   (async () => {
     try {
-      const words = aiResponseText.split(/(\s+)/);
-      for (const word of words) {
-        await writer.write(encoder.encode(word));
-        await new Promise((resolve) => setTimeout(resolve, 8));
-      }
+      await writer.write(encoder.encode(synthesizedReport));
     } finally {
       await writer.close();
     }
@@ -286,7 +493,6 @@ export async function POST(req: NextRequest) {
   return new Response(readable, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Transfer-Encoding": "chunked",
       "Cache-Control": "no-cache",
     },
   });

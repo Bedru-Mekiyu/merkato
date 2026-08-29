@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Loader2, RotateCcw, User, Bot, Zap, CheckCircle2 } from "lucide-react";
+import {
+  Send,
+  Sparkles,
+  Loader2,
+  RotateCcw,
+  User,
+  Bot,
+  Zap,
+  Key,
+  Database,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -9,6 +20,8 @@ interface Message {
   content: string;
   streaming?: boolean;
 }
+
+const CUSTOM_KEY_STORAGE = "merkato_custom_ai_key";
 
 export function AiChat({
   userName,
@@ -23,12 +36,37 @@ export function AiChat({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customKey, setCustomKey] = useState<string>("");
+  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CUSTOM_KEY_STORAGE);
+      if (saved) setCustomKey(saved);
+    } catch {
+      // Storage error ignored
+    }
+  }, []);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  function saveCustomKey(key: string) {
+    setCustomKey(key);
+    try {
+      if (key) {
+        localStorage.setItem(CUSTOM_KEY_STORAGE, key);
+      } else {
+        localStorage.removeItem(CUSTOM_KEY_STORAGE);
+      }
+    } catch {
+      // Storage error ignored
+    }
+    setShowKeyModal(false);
+  }
 
   async function sendMessage(userMessage: string) {
     if (!userMessage.trim() || loading) return;
@@ -51,6 +89,7 @@ export function AiChat({
         body: JSON.stringify({
           messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
           context,
+          customApiKey: customKey || undefined,
         }),
       });
 
@@ -114,19 +153,34 @@ export function AiChat({
     return lines.map((line, i) => {
       if (line.startsWith("`")) {
         return (
-          <div key={i} className="font-mono text-xs bg-black/40 border border-white/10 p-2.5 rounded-lg my-2 text-white/80 overflow-x-auto">
+          <div
+            key={i}
+            className="font-mono text-xs bg-black/40 border border-white/10 p-2.5 rounded-lg my-2 text-white/80 overflow-x-auto"
+          >
             {line.replace(/`[a-z]*/, "")}
           </div>
         );
       }
       if (line.startsWith("### ")) {
-        return <h3 key={i} className="font-bold text-white text-sm sm:text-base mt-3.5 mb-1.5">{line.slice(4)}</h3>;
+        return (
+          <h3 key={i} className="font-bold text-white text-sm sm:text-base mt-3.5 mb-1.5">
+            {line.slice(4)}
+          </h3>
+        );
       }
       if (line.startsWith("## ")) {
-        return <h2 key={i} className="font-bold text-white text-base sm:text-lg mt-4 mb-2">{line.slice(3)}</h2>;
+        return (
+          <h2 key={i} className="font-bold text-white text-base sm:text-lg mt-4 mb-2">
+            {line.slice(3)}
+          </h2>
+        );
       }
       if (line.startsWith("# ")) {
-        return <h1 key={i} className="font-bold text-white text-lg sm:text-xl mt-4 mb-2">{line.slice(2)}</h1>;
+        return (
+          <h1 key={i} className="font-bold text-white text-lg sm:text-xl mt-4 mb-2">
+            {line.slice(2)}
+          </h1>
+        );
       }
       if (line.startsWith("- ") || line.startsWith("• ") || line.startsWith("* ")) {
         return (
@@ -136,13 +190,31 @@ export function AiChat({
           </div>
         );
       }
+      if (line.startsWith("> ")) {
+        return (
+          <blockquote
+            key={i}
+            className="border-l-2 border-primary/40 bg-white/[0.02] pl-3 py-1 my-2 text-xs text-white/70 italic rounded-r"
+          >
+            {line.slice(2)}
+          </blockquote>
+        );
+      }
       if (line === "") return <div key={i} className="h-2" />;
 
       const boldified = line.replace(/\*\*([^*]+)\*\*/g, "[[B]][[/B]]");
       const parts = boldified.split(/\[\[B\]\]|\[\[\/B\]\]/);
       return (
         <p key={i} className="leading-relaxed text-sm text-white/90 my-1">
-          {parts.map((part, j) => (j % 2 === 1 ? <strong key={j} className="text-white font-semibold">{part}</strong> : part))}
+          {parts.map((part, j) =>
+            j % 2 === 1 ? (
+              <strong key={j} className="text-white font-semibold">
+                {part}
+              </strong>
+            ) : (
+              part
+            )
+          )}
         </p>
       );
     });
@@ -150,7 +222,7 @@ export function AiChat({
 
   return (
     <div className="flex flex-col h-full bg-background/50">
-      {/* Modern-Thin Header */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/[0.08] shrink-0 bg-surface/40 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_12px_var(--primary-glow)] shrink-0">
@@ -158,26 +230,43 @@ export function AiChat({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-white tracking-tight">AI Assistant</h1>
+              <h1 className="text-sm font-bold text-white tracking-tight">AI &amp; Workspace Intelligence</h1>
               <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                OpenCode Free AI
+                {customKey ? "Custom LLM Connected" : "Live Workspace RAG"}
               </span>
             </div>
-            <p className="text-[11px] text-white/50">Org-aware live intelligence session</p>
+            <p className="text-[11px] text-white/50">
+              {customKey
+                ? "Streaming generative neural model with workspace context"
+                : "Real-time PostgreSQL analytical synthesis engine"}
+            </p>
           </div>
         </div>
 
-        {messages.length > 0 && (
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={clearChat}
+            onClick={() => setShowKeyModal(true)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-xs text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors"
           >
-            <RotateCcw className="h-3 w-3" />
-            <span>New chat</span>
+            <Key className="h-3 w-3" />
+            <span className="hidden sm:inline">
+              {customKey ? "LLM Key Set" : "Connect LLM Key"}
+            </span>
           </button>
-        )}
+
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={clearChat}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-xs text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>New chat</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages Scroll Area */}
@@ -191,7 +280,7 @@ export function AiChat({
               Hello, {userName}
             </h2>
             <p className="text-xs text-white/60 max-w-md mx-auto leading-relaxed">
-              I have full real-time awareness of your workspace — deals, sprint tasks, support tickets, and team channels. Ask me anything.
+              I have full real-time awareness of your workspace — live CRM pipeline valuations, sprint task bottlenecks, open support tickets, and team activity. Ask me anything.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto pt-6 text-left">
@@ -226,7 +315,11 @@ export function AiChat({
                   : "bg-white/10 border border-white/20 text-white"
               )}
             >
-              {msg.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4 text-white/80" />}
+              {msg.role === "assistant" ? (
+                <Bot className="h-4 w-4" />
+              ) : (
+                <User className="h-4 w-4 text-white/80" />
+              )}
             </div>
 
             <div
@@ -309,6 +402,61 @@ export function AiChat({
           </button>
         </form>
       </div>
+
+      {/* Key Modal */}
+      {showKeyModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Key className="h-5 w-5 text-primary" />
+                <h3 className="text-base font-bold text-white">LLM API Key Settings</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowKeyModal(false)}
+                className="text-white/50 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-white/60 leading-relaxed">
+              Connect your own OpenAI, Anthropic, OpenRouter, or Groq API key for generative neural completions. Your key is stored locally in your browser and sent securely over TLS.
+            </p>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-white/80 block">API Key</label>
+              <input
+                type="password"
+                value={customKey}
+                onChange={(e) => setCustomKey(e.target.value)}
+                placeholder="sk-..."
+                className="w-full h-10 px-3.5 rounded-xl bg-black/40 border border-white/10 text-sm text-white placeholder:text-white/30 focus:border-primary outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              {customKey && (
+                <button
+                  type="button"
+                  onClick={() => saveCustomKey("")}
+                  className="px-3 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 transition-colors"
+                >
+                  Clear Key
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => saveCustomKey(customKey)}
+                className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-medium hover:bg-primary-hover transition-colors"
+              >
+                Save Preference
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
