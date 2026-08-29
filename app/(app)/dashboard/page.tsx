@@ -115,8 +115,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <p className="text-xs text-white/40 mb-8 -mt-4 font-mono">
-        {companiesCount.count ?? 0} companies tracked across active CRM shards
+      <p className="text-xs text-white/50 mb-8 -mt-4">
+        {companiesCount.count ?? 0} companies and {contactsCount.count ?? 0} contacts tracked in your CRM directory
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

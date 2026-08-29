@@ -6,6 +6,7 @@ import { TaskBoard } from "@/components/projects/task-board";
 import { TaskListView } from "@/components/projects/task-list-view";
 import { TaskCalendarView } from "@/components/projects/task-calendar-view";
 import { TaskDetailPanel } from "@/components/projects/task-detail-panel";
+import { KanbanSquare, ListTodo, CalendarDays } from "lucide-react";
 import type { ProjectTask } from "@/types/database";
 
 type ViewMode = "board" | "list" | "calendar";
@@ -24,23 +25,35 @@ export function ProjectViewSwitcher({
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
 
+  const viewButtons = [
+    { id: "board" as const, label: "Kanban Board", icon: KanbanSquare },
+    { id: "list" as const, label: "Task List", icon: ListTodo },
+    { id: "calendar" as const, label: "Timeline Calendar", icon: CalendarDays },
+  ];
+
   return (
     <div>
-      <div className="flex items-center gap-1 mb-5 border border-border rounded-sm p-1 w-fit bg-surface">
-        {(["board", "list", "calendar"] as ViewMode[]).map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setView(mode)}
-            className={cn(
-              "px-3 py-1.5 rounded-sm text-sm font-medium capitalize transition-colors",
-              view === mode
-                ? "bg-accent/10 text-accent"
-                : "text-muted hover:text-white"
-            )}
-          >
-            {mode}
-          </button>
-        ))}
+      <div className="flex items-center gap-1 mb-6 border border-white/[0.08] rounded-xl p-1 w-fit bg-surface/80 backdrop-blur-md">
+        {viewButtons.map((btn) => {
+          const Icon = btn.icon;
+          const active = view === btn.id;
+          return (
+            <button
+              key={btn.id}
+              type="button"
+              onClick={() => setView(btn.id)}
+              className={cn(
+                "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 active:scale-95",
+                active
+                  ? "bg-primary text-white shadow-[0_0_12px_var(--primary-glow)]"
+                  : "text-white/50 hover:text-white hover:bg-white/[0.05]"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{btn.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {view === "board" && (

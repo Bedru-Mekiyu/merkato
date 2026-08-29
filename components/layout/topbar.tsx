@@ -45,7 +45,7 @@ export function Topbar({
           userId={userId}
         />
 
-        <UserMenu userEmail={userEmail} userName={userName} />
+        <UserMenu userEmail={userEmail} userName={userName} orgName={orgName} />
       </div>
     </header>
   );

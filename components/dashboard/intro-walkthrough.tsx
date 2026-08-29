@@ -91,8 +91,8 @@ export function IntroWalkthrough({ orgName }: { orgName: string }) {
     },
     {
       id: "cluster",
-      title: "4. Nodes Cluster",
-      subtitle: "Inspect real-time telemetry, 7 distributed nodes, and sub-50ms mesh.",
+      title: "4. System Health & Telemetry",
+      subtitle: "Inspect real-time Postgres, Auth, Storage probes, and edge runtime.",
       icon: Network,
       href: "/cluster",
     },
@@ -150,7 +150,7 @@ export function IntroWalkthrough({ orgName }: { orgName: string }) {
             {themes.find((t) => t.id === theme)?.name} Active
           </span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {themes.map((t) => {
             const active = theme === t.id;
             return (
