@@ -10,21 +10,34 @@ const config: Config = {
     extend: {
       colors: {
         background: {
-          DEFAULT: "#0A0A0B",
+          DEFAULT: "var(--background)",
           light: "#FAFAFA",
         },
         surface: {
-          DEFAULT: "#18181B",
+          DEFAULT: "var(--surface)",
+          hover: "var(--surface-hover)",
           light: "#FFFFFF",
         },
         border: {
-          DEFAULT: "#27272A",
+          DEFAULT: "var(--border-color)",
           light: "#E5E7EB",
         },
+        primary: {
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          foreground: "#FFFFFF",
+          subtle: "var(--primary-subtle)",
+          accent: "var(--primary-glow)",
+        },
         accent: {
-          DEFAULT: "#6366F1",
-          hover: "#5558E3",
-          subtle: "rgba(99, 102, 241, 0.12)",
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          subtle: "var(--primary-subtle)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          hover: "var(--secondary-hover)",
+          foreground: "#FFFFFF",
         },
         success: "#22C55E",
         warning: "#F59E0B",
@@ -37,11 +50,14 @@ const config: Config = {
           DEFAULT: "rgba(255, 255, 255, 0.4)",
           light: "rgba(0, 0, 0, 0.4)",
         },
+        info: "#3B82F6",
       },
       borderRadius: {
-        sm: "8px",
-        md: "12px",
-        lg: "16px",
+        sm: "6px",
+        md: "10px",
+        lg: "18px",
+        xl: "24px",
+        "2xl": "32px",
       },
       fontFamily: {
         sans: [
@@ -53,9 +69,17 @@ const config: Config = {
         ],
       },
       boxShadow: {
-        subtle: "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
-        modal: "0 8px 30px rgba(0, 0, 0, 0.5)",
-        glow: "0 0 0 1px rgba(99, 102, 241, 0.15), 0 4px 24px rgba(99, 102, 241, 0.12)",
+        xs: "0 1px 1px 0 rgba(0, 0, 0, 0.05)",
+        sm: "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+        DEFAULT: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
+        "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        inner: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)",
+        modal: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        glow: "0 0 0 1px rgba(99, 102, 241, 0.15), 0 4px 20px rgba(99, 102, 241, 0.12)",
+        card: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       },
       keyframes: {
         "fade-in": {
@@ -74,12 +98,41 @@ const config: Config = {
           from: { transform: "translateX(-100%)" },
           to: { transform: "translateX(0)" },
         },
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-height)" },
+          to: { height: "0" },
+        },
+        "shimmer": {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
+        "float": {
+          from: { transform: "translateY(0px)" },
+          to: { transform: "translateY(-20px)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 150ms ease-out",
         "fade-in-up": "fade-in-up 350ms ease-out both",
         "scale-in": "scale-in 150ms ease-out",
         "slide-in-left": "slide-in-left 200ms ease-out",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "shimmer": "shimmer 2s linear infinite",
+        "float": "float 6s ease-in-out infinite",
+      },
+      transitionProperty: {
+        "height": "height",
+        "spacing": "margin padding",
+      },
+      transitionTimingFunction: {
+        "in-out": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "out": "cubic-bezier(0.0, 0, 0.2, 1)",
+        "in": "cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },
