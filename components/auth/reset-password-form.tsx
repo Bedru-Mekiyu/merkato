@@ -59,23 +59,23 @@ export function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="rounded-md border border-border bg-surface p-5 text-center">
-        <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-3">
-          <span className="text-success text-lg">✓</span>
+      <div className="rounded-xl border border-white/10 bg-surface/90 backdrop-blur-sm p-6 text-center shadow-lg animate-scale-in">
+        <div className="h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+          ✓
         </div>
-        <p className="text-sm font-medium text-white mb-1">Password updated</p>
-        <p className="text-sm text-muted">Redirecting you to your dashboard…</p>
+        <p className="text-base font-semibold text-white mb-1">Password updated</p>
+        <p className="text-sm text-white/70">Redirecting you to your dashboard…</p>
       </div>
     );
   }
 
   if (!sessionReady) {
     return (
-      <div className="rounded-md border border-border bg-surface p-5 text-center">
-        <p className="text-sm text-muted">Verifying your reset link…</p>
-        <p className="text-xs text-faint mt-2">
+      <div className="rounded-xl border border-white/10 bg-surface/90 backdrop-blur-sm p-6 text-center shadow-lg">
+        <p className="text-sm text-white/80">Verifying your security link…</p>
+        <p className="text-xs text-white/40 mt-2">
           If nothing happens, your link may have expired.{" "}
-          <a href="/forgot-password" className="text-accent hover:underline">
+          <a href="/forgot-password" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
             Request a new one
           </a>
           .
@@ -87,8 +87,8 @@ export function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          New password
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          New Password
         </label>
         <Input
           type="password"
@@ -102,8 +102,8 @@ export function ResetPasswordForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          Confirm new password
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          Confirm New Password
         </label>
         <Input
           type="password"
@@ -116,13 +116,13 @@ export function ResetPasswordForm() {
       </div>
 
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
 
-      <Button type="submit" loading={loading} className="w-full">
-        Update password
+      <Button type="submit" loading={loading} size="lg" className="w-full mt-2">
+        Update Password
       </Button>
     </form>
   );

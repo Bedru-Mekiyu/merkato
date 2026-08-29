@@ -3,28 +3,32 @@ import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="inline-flex items-center gap-2 mb-10">
-          <div className="h-8 w-8 rounded-sm bg-accent flex items-center justify-center text-white font-bold text-sm">
-            M
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background selection:bg-primary/30">
+      <div className="w-full max-w-[380px] animate-fade-in-up">
+        <div className="rounded-xl border border-white/[0.08] bg-surface p-6 sm:p-7 shadow-xl">
+          <div className="mb-5">
+            <h1 className="text-lg font-semibold text-white tracking-tight">
+              Reset your password
+            </h1>
+            <p className="text-xs text-white/50 mt-1">
+              Enter your work email to receive a password reset link.
+            </p>
           </div>
-          <span className="text-lg font-semibold text-white">Merkato</span>
-        </Link>
 
-        <h1 className="text-2xl font-bold text-white mb-1.5">Reset your password</h1>
-        <p className="text-sm text-muted mb-8">
-          Enter your email and we&apos;ll send you a reset link.
-        </p>
+          <ForgotPasswordForm />
 
-        <ForgotPasswordForm />
-
-        <p className="mt-6 text-sm text-muted text-center">
-          Remembered it?{" "}
-          <Link href="/login" className="text-accent hover:text-accent-hover font-medium">
-            Back to login
-          </Link>
-        </p>
+          <div className="mt-5 pt-4 border-t border-white/[0.06] text-center">
+            <p className="text-xs text-white/50">
+              Remembered your password?{" "}
+              <Link
+                href="/login"
+                className="text-white hover:underline font-medium transition-colors"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

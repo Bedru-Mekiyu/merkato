@@ -60,8 +60,8 @@ export function MfaVerifyForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          Authentication code
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          6-Digit Security Code
         </label>
         <Input
           type="text"
@@ -72,12 +72,12 @@ export function MfaVerifyForm() {
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
           autoFocus
-          className="tracking-widest text-center text-lg font-mono"
+          className="tracking-[0.3em] text-center text-lg font-mono"
         />
       </div>
 
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
@@ -85,15 +85,16 @@ export function MfaVerifyForm() {
       <Button
         type="submit"
         loading={loading}
+        size="lg"
         disabled={code.length !== 6}
-        className="w-full"
+        className="w-full mt-2"
       >
-        Verify
+        Verify & Continue
       </Button>
 
-      <p className="text-xs text-faint text-center">
+      <p className="text-xs text-white/40 text-center">
         Lost access to your authenticator?{" "}
-        <a href="mailto:support@merkato.app" className="text-accent hover:underline">
+        <a href="mailto:support@merkato.app" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
           Contact support
         </a>
       </p>

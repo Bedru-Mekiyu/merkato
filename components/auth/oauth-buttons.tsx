@@ -40,20 +40,20 @@ export function OAuthButtons({ next }: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {googleOn && (
         <button
           type="button"
           onClick={() => signInWith("google")}
           disabled={loading !== null}
-          className="w-full flex items-center justify-center gap-2.5 h-10 px-4 rounded-sm border border-border bg-surface text-sm font-medium text-white hover:bg-white/5 hover:border-white/20 disabled:opacity-50 transition-all duration-150 active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2.5 h-10 px-4 rounded-md border border-white/10 bg-surface/80 text-sm font-medium text-white hover:bg-white/[0.07] hover:border-white/20 active:bg-white/[0.1] active:scale-[0.985] shadow-[0_1px_2px_rgba(0,0,0,0.2)] disabled:opacity-50 disabled:pointer-events-none transition-all duration-150"
         >
           {loading === "google" ? (
             <span className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
           ) : (
             <GoogleIcon />
           )}
-          Continue with Google
+          <span>Continue with Google</span>
         </button>
       )}
 
@@ -62,14 +62,14 @@ export function OAuthButtons({ next }: Props) {
           type="button"
           onClick={() => signInWith("github")}
           disabled={loading !== null}
-          className="w-full flex items-center justify-center gap-2.5 h-10 px-4 rounded-sm border border-border bg-surface text-sm font-medium text-white hover:bg-white/5 hover:border-white/20 disabled:opacity-50 transition-all duration-150 active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2.5 h-10 px-4 rounded-md border border-white/10 bg-surface/80 text-sm font-medium text-white hover:bg-white/[0.07] hover:border-white/20 active:bg-white/[0.1] active:scale-[0.985] shadow-[0_1px_2px_rgba(0,0,0,0.2)] disabled:opacity-50 disabled:pointer-events-none transition-all duration-150"
         >
           {loading === "github" ? (
             <span className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
           ) : (
             <GitHubIcon />
           )}
-          Continue with GitHub
+          <span>Continue with GitHub</span>
         </button>
       )}
     </div>

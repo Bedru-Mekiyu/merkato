@@ -62,13 +62,15 @@ export function SignupForm() {
 
   if (sent) {
     return (
-      <div className="rounded-md border border-border bg-surface p-5 text-center">
-        <p className="text-sm text-white font-medium mb-1">
+      <div className="rounded-xl border border-white/10 bg-surface/90 backdrop-blur-sm p-6 text-center shadow-lg animate-scale-in">
+        <div className="h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+          ✓
+        </div>
+        <p className="text-base text-white font-semibold mb-1">
           Check your email
         </p>
-        <p className="text-sm text-muted">
-          We sent a confirmation link to <span className="text-white">{email}</span>.
-          Click it to activate your account.
+        <p className="text-sm text-white/70 leading-relaxed">
+          We sent a verification link to <span className="text-white font-medium">{email}</span>. Click it to activate your workspace access.
         </p>
       </div>
     );
@@ -77,8 +79,8 @@ export function SignupForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          Full name
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          Full Name
         </label>
         <Input
           type="text"
@@ -91,8 +93,8 @@ export function SignupForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          Work email
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          Work Email
         </label>
         <Input
           type="email"
@@ -105,7 +107,7 @@ export function SignupForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
           Password
         </label>
         <Input
@@ -120,17 +122,17 @@ export function SignupForm() {
       </div>
 
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
 
-      <Button type="submit" loading={loading} className="w-full">
-        Create account
+      <Button type="submit" loading={loading} size="lg" className="w-full mt-2">
+        Create Your Workspace
       </Button>
 
-      <p className="text-xs text-faint text-center">
-        By continuing, you confirm that you are authorized to create or join this workspace.
+      <p className="text-[11px] text-white/40 text-center leading-relaxed">
+        By creating an account, you agree to our Terms of Service and Privacy Policy.
       </p>
     </form>
   );

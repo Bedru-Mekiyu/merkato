@@ -33,14 +33,14 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className="rounded-md border border-border bg-surface p-5 text-center">
-        <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-3">
-          <span className="text-success text-lg">✓</span>
+      <div className="rounded-xl border border-white/10 bg-surface/90 backdrop-blur-sm p-6 text-center shadow-lg animate-scale-in">
+        <div className="h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+          ✓
         </div>
-        <p className="text-sm font-medium text-white mb-1">Check your email</p>
-        <p className="text-sm text-muted">
+        <p className="text-base font-semibold text-white mb-1">Check your email</p>
+        <p className="text-sm text-white/70 leading-relaxed">
           We sent a password reset link to{" "}
-          <span className="text-white">{email}</span>. It expires in 1 hour.
+          <span className="text-white font-medium">{email}</span>. It expires in 1 hour.
         </p>
       </div>
     );
@@ -49,7 +49,9 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">Email</label>
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          Work Email
+        </label>
         <Input
           type="email"
           placeholder="you@company.com"
@@ -62,13 +64,13 @@ export function ForgotPasswordForm() {
       </div>
 
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
 
-      <Button type="submit" loading={loading} className="w-full">
-        Send reset link
+      <Button type="submit" loading={loading} size="lg" className="w-full mt-2">
+        Send Password Reset Link
       </Button>
     </form>
   );

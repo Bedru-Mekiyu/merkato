@@ -27,30 +27,40 @@ export function CreateWorkspaceForm() {
     }
   }
 
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          Workspace name
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          Workspace Name
         </label>
         <Input
           type="text"
-          placeholder="Acme Inc."
+          placeholder="Acme Corp"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
           autoFocus
         />
+        {name.trim().length > 0 && (
+          <p className="mt-1.5 text-xs text-white/40 font-mono">
+            URL: merkato.app/<span className="text-indigo-400">{slug || "workspace"}</span>
+          </p>
+        )}
       </div>
 
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
 
-      <Button type="submit" loading={loading} className="w-full">
-        Create workspace
+      <Button type="submit" loading={loading} size="lg" className="w-full mt-2">
+        Launch Workspace
       </Button>
     </form>
   );

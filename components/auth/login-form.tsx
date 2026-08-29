@@ -53,8 +53,8 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-1.5">
-          Email
+        <label className="block text-xs font-medium text-white/70 uppercase tracking-wider mb-1.5">
+          Work Email
         </label>
         <Input
           type="email"
@@ -68,10 +68,10 @@ export function LoginForm() {
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-medium text-white/80">
+          <label className="block text-xs font-medium text-white/70 uppercase tracking-wider">
             Password
           </label>
-          <a href="/forgot-password" className="text-xs text-accent hover:text-accent-hover">
+          <a href="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
             Forgot password?
           </a>
         </div>
@@ -86,13 +86,13 @@ export function LoginForm() {
       </div>
 
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
 
-      <Button type="submit" loading={loading} className="w-full">
-        Log in
+      <Button type="submit" loading={loading} size="lg" className="w-full mt-2">
+        Sign in to Workspace
       </Button>
     </form>
   );

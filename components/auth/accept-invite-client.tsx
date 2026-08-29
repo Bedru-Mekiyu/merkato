@@ -35,7 +35,7 @@ export function AcceptInviteClient({
   return (
     <div className="space-y-3">
       {error && (
-        <div className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-sm px-3 py-2">
+        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md px-3 py-2.5">
           {error}
         </div>
       )}
@@ -43,13 +43,15 @@ export function AcceptInviteClient({
       <Button
         onClick={handleAccept}
         loading={loading}
+        size="lg"
         className="w-full"
       >
-        Accept invitation
+        Join Workspace
       </Button>
 
       <Button
         variant="ghost"
+        size="md"
         onClick={() => router.push("/dashboard")}
         className="w-full"
       >
