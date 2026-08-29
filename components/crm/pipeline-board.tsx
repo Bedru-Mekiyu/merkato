@@ -71,7 +71,7 @@ export function PipelineBoard({ deals }: { deals: Deal[] }) {
   }
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2">
+    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory sm:snap-none -mx-4 px-4 sm:mx-0 sm:px-0">
       {DEAL_STAGES.map((stageDef) => {
         const stageDeals = localDeals.filter((d) => d.stage === stageDef.value);
         const stageValue = stageDeals.reduce((s, d) => s + Number(d.value ?? 0), 0);
@@ -79,7 +79,7 @@ export function PipelineBoard({ deals }: { deals: Deal[] }) {
         return (
           <div
             key={stageDef.value}
-            className="flex-shrink-0 w-72"
+            className="flex-shrink-0 w-72 sm:w-80 snap-center"
             onDragOver={(e) => {
               e.preventDefault();
               setDragOverStage(stageDef.value);
@@ -91,23 +91,25 @@ export function PipelineBoard({ deals }: { deals: Deal[] }) {
               if (dealId) handleDrop(stageDef.value, dealId);
             }}
           >
-            <div className="flex items-center justify-between px-1 mb-2">
-              <h3 className="text-sm font-medium text-white/80">
-                {stageDef.label}
-                <span className="ml-1.5 text-faint">{stageDeals.length}</span>
+            <div className="flex items-center justify-between px-1 mb-2.5">
+              <h3 className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5">
+                <span>{stageDef.label}</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-white/[0.06] text-white/60">
+                  {stageDeals.length}
+                </span>
               </h3>
-              <span className="text-xs text-muted">
+              <span className="text-xs font-mono font-semibold text-white/50">
                 ${stageValue.toLocaleString()}
               </span>
             </div>
 
             <div
               className={cn(
-                "rounded-md border border-t-2 bg-surface/40 min-h-[120px] p-2 space-y-2 transition-colors",
+                "rounded-xl border border-t-2 bg-surface/30 min-h-[140px] p-2 space-y-2 transition-colors",
                 stageAccent[stageDef.value],
                 dragOverStage === stageDef.value
-                  ? "border-border bg-accent/5"
-                  : "border-border"
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-white/[0.06]"
               )}
             >
               {stageDeals.map((deal) => (
@@ -117,29 +119,29 @@ export function PipelineBoard({ deals }: { deals: Deal[] }) {
                   onDragStart={(e) => {
                     e.dataTransfer.setData("dealId", deal.id);
                   }}
-                  className="group rounded-sm border border-border bg-surface p-3 cursor-grab active:cursor-grabbing hover:border-white/20 transition-colors"
+                  className="group rounded-xl border border-white/[0.08] bg-surface/85 backdrop-blur-sm p-3.5 cursor-grab active:cursor-grabbing hover:border-white/20 transition-all shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-white leading-snug">
+                    <p className="text-xs font-bold text-white leading-snug">
                       {deal.title}
                     </p>
                     <button
                       onClick={() => handleDelete(deal.id)}
                       aria-label={`Delete deal ${deal.title}`}
-                      className="opacity-100 sm:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 shrink-0 h-5 w-5 flex items-center justify-center rounded text-faint hover:text-danger transition-all"
+                      className="opacity-100 sm:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 shrink-0 h-5 w-5 flex items-center justify-center rounded-md text-white/40 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
                     >
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
                   {deal.crm_companies?.name && (
-                    <p className="text-xs text-muted mt-1">{deal.crm_companies.name}</p>
+                    <p className="text-[11px] text-white/50 mt-0.5">{deal.crm_companies.name}</p>
                   )}
-                  <div className="flex items-center justify-between mt-2.5">
-                    <span className="text-sm font-semibold text-white">
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs font-bold text-white font-mono">
                       ${Number(deal.value ?? 0).toLocaleString()}
                     </span>
                     {deal.crm_contacts?.full_name && (
-                      <span className="h-5 w-5 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-[10px] font-medium text-accent">
+                      <span className="h-5 w-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary">
                         {deal.crm_contacts.full_name.charAt(0).toUpperCase()}
                       </span>
                     )}
@@ -153,10 +155,10 @@ export function PipelineBoard({ deals }: { deals: Deal[] }) {
                     id={`stage-${deal.id}`}
                     value={deal.stage}
                     onChange={(e) => moveDeal(deal.id, e.target.value as DealStage)}
-                    className="mt-2.5 w-full h-8 px-2 rounded-sm bg-background border border-border text-xs text-white/80 hover:border-white/20 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition-all"
+                    className="mt-2.5 w-full h-7 px-2 rounded-lg bg-black/40 border border-white/10 text-[11px] font-mono text-white/80 hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                   >
                     {DEAL_STAGES.map((s) => (
-                      <option key={s.value} value={s.value}>
+                      <option key={s.value} value={s.value} className="bg-surface text-white">
                         {s.label}
                       </option>
                     ))}
@@ -165,7 +167,7 @@ export function PipelineBoard({ deals }: { deals: Deal[] }) {
               ))}
 
               {stageDeals.length === 0 && (
-                <div className="h-20 flex items-center justify-center text-xs text-faint">
+                <div className="h-24 flex items-center justify-center text-xs text-white/30 font-mono">
                   No deals in this stage
                 </div>
               )}

@@ -15,13 +15,13 @@ const statusVariant: Record<ProjectStatus, "default" | "success" | "warning" | "
 export function ProjectsGrid({ projects }: { projects: Project[] }) {
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center text-center py-16 border border-border rounded-md bg-surface">
-        <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center mb-3">
-          <FolderKanban className="h-5 w-5 text-faint" />
+      <div className="flex flex-col items-center text-center py-16 border border-white/[0.08] rounded-2xl bg-surface/50">
+        <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3.5 text-primary">
+          <FolderKanban className="h-5 w-5" />
         </div>
-        <p className="text-sm font-medium text-white mb-1">No projects yet</p>
-        <p className="text-xs text-muted">
-          Create your first project to start organizing tasks.
+        <p className="text-sm font-bold text-white mb-1">No projects yet</p>
+        <p className="text-xs text-white/50 max-w-xs">
+          Create your first project to start organizing tasks and tracking team sprints.
         </p>
       </div>
     );
@@ -38,10 +38,10 @@ export function ProjectsGrid({ projects }: { projects: Project[] }) {
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
-            className="block rounded-md border border-border bg-surface p-4 hover:border-white/20 transition-colors"
+            className="group block rounded-2xl border border-white/[0.08] bg-surface/75 backdrop-blur-sm p-5 hover:border-white/20 transition-all duration-200 shadow-sm hover:shadow-lg"
           >
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="text-sm font-semibold text-white leading-snug pr-2">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h3 className="text-sm font-bold text-white leading-snug group-hover:text-primary transition-colors">
                 {project.name}
               </h3>
               <Badge variant={statusVariant[project.status]} className="capitalize shrink-0">
@@ -50,28 +50,28 @@ export function ProjectsGrid({ projects }: { projects: Project[] }) {
             </div>
 
             {project.description && (
-              <p className="text-xs text-muted mb-3 line-clamp-2">{project.description}</p>
+              <p className="text-xs text-white/55 mb-4 line-clamp-2 leading-relaxed">{project.description}</p>
             )}
 
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-muted">
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1.5 text-xs font-mono">
+                <span className="text-white/50">
                   {done} / {total} tasks
                 </span>
-                <span className="text-xs text-muted">{pct}%</span>
+                <span className="text-white font-semibold">{pct}%</span>
               </div>
-              <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
                 <div
-                  className="h-full bg-accent rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-all duration-500"
                   style={{ width: `${pct}%` }}
                 />
               </div>
             </div>
 
             {project.due_date && (
-              <div className="flex items-center gap-1.5 text-xs text-faint">
-                <Calendar className="h-3 w-3" />
-                {new Date(project.due_date).toLocaleDateString()}
+              <div className="flex items-center gap-1.5 text-xs text-white/40 font-mono">
+                <Calendar className="h-3 w-3 text-white/50" />
+                <span>Due {new Date(project.due_date).toLocaleDateString()}</span>
               </div>
             )}
           </Link>

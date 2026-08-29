@@ -4,8 +4,9 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, DonutChart } from "@/components/analytics/charts";
+import { ClusterTopology } from "@/components/cluster/cluster-topology";
 
-type Tab = "business" | "team" | "support";
+type Tab = "business" | "team" | "support" | "cluster";
 
 // helpers
 function last30days() {
@@ -128,19 +129,34 @@ export function AnalyticsDashboard({
 
       {/* Tab switcher */}
       <div className="flex items-center gap-1 mb-6 border border-border rounded-sm p-1 w-fit bg-surface">
-        {(["business", "team", "support"] as Tab[]).map((t) => (
+        {(
+          [
+            { id: "business", label: "Business & Revenue" },
+            { id: "team", label: "Team Execution" },
+            { id: "support", label: "Customer Support" },
+            { id: "cluster", label: "Nodes Cluster" },
+          ] as { id: Tab; label: string }[]
+        ).map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.id}
+            onClick={() => setTab(t.id)}
             className={cn(
-              "px-4 py-1.5 rounded-sm text-sm font-medium capitalize transition-colors",
-              tab === t ? "bg-accent/10 text-accent" : "text-muted hover:text-white"
+              "px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 active:scale-95",
+              tab === t.id
+                ? "bg-primary text-white shadow-sm"
+                : "text-white/60 hover:text-white hover:bg-white/[0.05]"
             )}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
+
+      {tab === "cluster" && (
+        <div className="space-y-6 animate-fade-in-up">
+          <ClusterTopology />
+        </div>
+      )}
 
       {tab === "business" && (
         <div className="space-y-4">

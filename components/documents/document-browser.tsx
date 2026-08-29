@@ -130,13 +130,13 @@ export function DocumentBrowser({
   }
 
   return (
-    <div className="px-6 sm:px-8 py-6 max-w-5xl mx-auto">
+    <div className="px-4 sm:px-8 py-6 max-w-5xl mx-auto space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
         <div>
-          <h1 className="text-lg font-semibold text-white">Documents</h1>
-          <p className="text-sm text-muted">
-            {allDocuments.length} file{allDocuments.length === 1 ? "" : "s"} in your workspace
+          <h1 className="text-xl font-bold text-white tracking-tight">Documents &amp; Files</h1>
+          <p className="text-xs text-white/50 mt-0.5">
+            {allDocuments.length} file{allDocuments.length === 1 ? "" : "s"} across active storage shards
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -159,18 +159,18 @@ export function DocumentBrowser({
       </div>
 
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm mb-5 flex-wrap">
-        <Link href="/documents" className="text-muted hover:text-white transition-colors">
-          Documents
+      <nav className="flex items-center gap-1.5 text-xs font-mono text-white/50 flex-wrap">
+        <Link href="/documents" className="text-white/60 hover:text-white transition-colors">
+          root
         </Link>
         {breadcrumb.map((f) => (
-          <span key={f.id} className="flex items-center gap-1">
-            <ChevronRight className="h-3.5 w-3.5 text-faint" />
+          <span key={f.id} className="flex items-center gap-1.5">
+            <ChevronRight className="h-3 w-3 text-white/30" />
             <Link
               href={`/documents?folder=${f.id}`}
               className={cn(
                 "transition-colors",
-                f.id === currentFolderId ? "text-white font-medium" : "text-muted hover:text-white"
+                f.id === currentFolderId ? "text-primary font-semibold" : "text-white/60 hover:text-white"
               )}
             >
               {f.name}
@@ -182,8 +182,10 @@ export function DocumentBrowser({
       {/* Drop zone */}
       <div
         className={cn(
-          "border-2 border-dashed rounded-md p-6 text-center mb-6 transition-colors",
-          dragging ? "border-accent bg-accent/5" : "border-border"
+          "border-2 border-dashed rounded-2xl p-6 text-center transition-all duration-200",
+          dragging
+            ? "border-primary bg-primary/10 shadow-[0_0_20px_var(--primary-glow)] scale-[1.01]"
+            : "border-white/10 bg-surface/40 hover:border-white/20"
         )}
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
@@ -194,30 +196,30 @@ export function DocumentBrowser({
         }}
       >
         {uploading ? (
-          <div className="flex items-center justify-center gap-2 text-sm text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Uploading...
+          <div className="flex items-center justify-center gap-2 text-xs font-medium text-white/70">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            Uploading file to secure storage shard...
           </div>
         ) : (
-          <p className="text-sm text-muted">
+          <p className="text-xs text-white/60">
             Drop files here or{" "}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="text-accent hover:text-accent-hover"
+              className="text-primary hover:text-primary-hover font-semibold transition-colors"
             >
-              click to upload
+              browse from your computer
             </button>
           </p>
         )}
         {uploadError && (
-          <p className="text-sm text-danger mt-2">{uploadError}</p>
+          <p className="text-xs text-rose-400 mt-2 font-mono">{uploadError}</p>
         )}
       </div>
 
       {/* Folders */}
       {childFolders.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold text-faint uppercase tracking-wide mb-3">
+        <div>
+          <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-3">
             Folders
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -225,14 +227,15 @@ export function DocumentBrowser({
               <div key={folder.id} className="group relative">
                 <Link
                   href={`/documents?folder=${folder.id}`}
-                  className="flex items-center gap-2.5 rounded-md border border-border bg-surface px-3 py-3 hover:border-white/20 transition-colors"
+                  className="flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-surface/75 backdrop-blur-sm px-3.5 py-3 hover:border-white/20 transition-all shadow-sm group-hover:border-primary/40"
                 >
-                  <FolderOpen className="h-4 w-4 text-accent shrink-0" />
-                  <span className="text-sm font-medium text-white truncate">{folder.name}</span>
+                  <FolderOpen className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-xs font-bold text-white truncate">{folder.name}</span>
                 </Link>
                 <button
                   onClick={() => handleDeleteFolder(folder.id)}
-                  className="absolute top-1.5 right-1.5 h-5 w-5 flex items-center justify-center rounded text-faint hover:text-danger opacity-0 group-hover:opacity-100 transition-all"
+                  aria-label={`Delete folder ${folder.name}`}
+                  className="absolute top-2 right-2 h-5 w-5 flex items-center justify-center rounded-md text-white/40 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-all"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -245,71 +248,114 @@ export function DocumentBrowser({
       {/* Files */}
       <div>
         {childFolders.length > 0 && (
-          <h2 className="text-xs font-semibold text-faint uppercase tracking-wide mb-3">
+          <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-3">
             Files
           </h2>
         )}
         {currentDocs.length === 0 && childFolders.length === 0 ? (
-          <div className="flex flex-col items-center text-center py-16 border border-border rounded-md bg-surface">
-            <FolderOpen className="h-5 w-5 text-faint mb-2" />
-            <p className="text-sm text-muted">
+          <div className="flex flex-col items-center text-center py-16 border border-white/[0.08] rounded-2xl bg-surface/50">
+            <FolderOpen className="h-5 w-5 text-white/30 mb-2" />
+            <p className="text-sm font-bold text-white">
               {currentFolderId ? "This folder is empty." : "No files yet."}
             </p>
-            <p className="text-xs text-faint mt-1">Upload files or drag them here.</p>
+            <p className="text-xs text-white/50 mt-1">Upload files or drag them into the drop zone above.</p>
           </div>
         ) : currentDocs.length === 0 ? null : (
-          <div className="border border-border rounded-md bg-surface overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="px-4 py-2.5 text-xs font-medium text-muted">Name</th>
-                  <th className="px-4 py-2.5 text-xs font-medium text-muted">Size</th>
-                  <th className="px-4 py-2.5 text-xs font-medium text-muted">Uploaded by</th>
-                  <th className="px-4 py-2.5 text-xs font-medium text-muted">Modified</th>
-                  <th className="px-4 py-2.5 w-16" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {currentDocs.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-white/[0.02] group">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {fileIcon(doc.mime_type)}
-                        <span className="text-white font-medium truncate max-w-xs">{doc.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-muted">{formatBytes(doc.size_bytes)}</td>
-                    <td className="px-4 py-3 text-muted">{doc.uploader_name ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted">
-                      {new Date(doc.updated_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button
-                          onClick={() => handleDownload(doc)}
-                          disabled={downloading === doc.id}
-                          className="h-7 w-7 flex items-center justify-center rounded-sm text-faint hover:text-white hover:bg-white/5"
-                          title="Download"
-                        >
-                          {downloading === doc.id
-                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            : <Download className="h-3.5 w-3.5" />
-                          }
-                        </button>
-                        <button
-                          onClick={() => handleDeleteDoc(doc.id)}
-                          className="h-7 w-7 flex items-center justify-center rounded-sm text-faint hover:text-danger hover:bg-danger/10"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Mobile Card List (< md) */}
+            <div className="grid grid-cols-1 gap-2.5 md:hidden">
+              {currentDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="p-3.5 rounded-xl border border-white/[0.08] bg-surface/75 backdrop-blur-sm flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    {fileIcon(doc.mime_type)}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{doc.name}</p>
+                      <p className="text-[10px] font-mono text-white/40 mt-0.5">
+                        {formatBytes(doc.size_bytes)} · {doc.uploader_name ?? "Member"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleDownload(doc)}
+                      disabled={downloading === doc.id}
+                      className="h-7 w-7 flex items-center justify-center rounded-md text-white/60 hover:text-white hover:bg-white/[0.06]"
+                    >
+                      {downloading === doc.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDoc(doc.id)}
+                      className="h-7 w-7 flex items-center justify-center rounded-md text-white/40 hover:text-rose-400 hover:bg-rose-500/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (≥ md) */}
+            <div className="hidden md:block rounded-2xl border border-white/[0.08] bg-surface/75 backdrop-blur-sm overflow-hidden shadow-sm">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-white/[0.06] bg-white/[0.02] text-white/50 uppercase font-mono tracking-wider">
+                    <th className="px-5 py-3.5 font-semibold">Name</th>
+                    <th className="px-5 py-3.5 font-semibold">Size</th>
+                    <th className="px-5 py-3.5 font-semibold">Uploaded By</th>
+                    <th className="px-5 py-3.5 font-semibold">Modified</th>
+                    <th className="px-5 py-3.5 w-16" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-white/[0.06]">
+                  {currentDocs.map((doc) => (
+                    <tr key={doc.id} className="hover:bg-white/[0.03] transition-colors group">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          {fileIcon(doc.mime_type)}
+                          <span className="text-white font-semibold truncate max-w-xs">{doc.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-white/60 font-mono">{formatBytes(doc.size_bytes)}</td>
+                      <td className="px-5 py-3.5 text-white/60 font-mono">{doc.uploader_name ?? "—"}</td>
+                      <td className="px-5 py-3.5 text-white/40 font-mono">
+                        {new Date(doc.updated_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button
+                            onClick={() => handleDownload(doc)}
+                            disabled={downloading === doc.id}
+                            className="h-7 w-7 flex items-center justify-center rounded-md text-white/60 hover:text-white hover:bg-white/[0.06]"
+                            title="Download"
+                          >
+                            {downloading === doc.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Download className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDoc(doc.id)}
+                            className="h-7 w-7 flex items-center justify-center rounded-md text-white/40 hover:text-rose-400 hover:bg-rose-500/10"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -317,7 +363,7 @@ export function DocumentBrowser({
       <Modal open={newFolderOpen} onClose={() => setNewFolderOpen(false)} title="New Folder">
         <form onSubmit={handleCreateFolder} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-1.5">
+            <label className="block text-xs font-semibold text-white/80 mb-1.5">
               Folder name
             </label>
             <Input
