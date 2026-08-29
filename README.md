@@ -36,7 +36,7 @@ Merkato is a full-stack, multi-tenant B2B operating system engineered with Next.
 - **Backend & Data**: Supabase PostgreSQL with 25 relational tables, ~90 Row-Level Security policies, and real-time WebSocket subscriptions.
 - **State & Realtime**: Native Next.js Server Actions with Supabase Realtime channels for live chat and notifications.
 - **Intelligence**: Built-in OpenCode Streaming AI engine with context injection and multi-provider LLM support (OpenAI, Anthropic, OpenRouter, Groq).
-- **Design System**: Tailored dark/light multi-theme engine (7 theme presets) with zero layout flash and high contrast accessibility.
+- **Design System**: Tailored multi-theme engine (4 curated high-contrast dark presets) with zero layout flash and high contrast accessibility.
 
 ---
 
@@ -109,13 +109,13 @@ Merkato consolidates core startup operations into a **single relational graph**:
 - **Folder Directory Hierarchy**: Nested folder organization with breadcrumb navigation.
 - **Secure File Drive**: Drag-and-drop file uploads backed by Supabase Storage, version tracking, and short-lived signed download URLs.
 
-### 🤖 AI Assistant & OpenCode Engine
-- **Workspace Context Injection**: Live briefing generation synthesizing current CRM deal value, urgent sprint tasks, and open support tickets.
-- **Multi-Model Streaming**: Built-in OpenCode streaming assistant with zero external dependencies, with optional transparent fallback to Anthropic Claude 3.5, OpenAI GPT-4o, OpenRouter, or Groq.
+### 🤖 AI & Workspace Intelligence Engine
+- **Workspace Context Synthesis**: Live RAG analytical generation synthesizing real-time CRM deal values, urgent sprint tasks, and open support tickets directly from PostgreSQL.
+- **Multi-Model LLM Streaming**: Direct streaming integration with OpenAI GPT-4o, Anthropic Claude 3.5, OpenRouter, or Groq, with transparent local key configuration.
 
-### 📊 Hand-Rolled Analytics & Cluster Monitoring
+### 📊 Hand-Rolled Analytics & Live System Telemetry
 - **Zero-Dependency SVG Charts**: Hand-rolled SVG line, bar, and donut charts for business revenue, team velocity, and ticket resolution.
-- **Cluster Mesh Topology**: Real-time multi-region node monitoring widget (7 edge regions: FRA, IAD, SFO, NRT, SIN, LHR, SYD) with sub-50ms sync verification.
+- **Live System Health Telemetry**: Real-time service latency probes (Postgres RLS, Supabase Auth, S3 Storage, Edge Runtime memory & uptime) with on-demand diagnostic pings.
 
 ### 🎨 Minimalist 7-Theme Switcher
 - **Zero-Flash Color Engine**: Instant switching across 7 presets:
@@ -532,7 +532,7 @@ Yes. All third-party services are architected with graceful degradation. If <cod
 
 <details>
 <summary><b>How do I change or customize themes?</b></summary>
-Click any of the circle swatches in the top navbar or footer to immediately switch between the 7 themes. Themes are defined via CSS variables in <code>app/globals.css</code> and configured in <code>lib/theme-context.tsx</code>.
+Click any of the circle swatches in the top navbar or footer to immediately switch between the 4 curated theme presets. Themes are defined via CSS variables in <code>app/globals.css</code> and configured in <code>lib/theme-context.tsx</code>.
 </details>
 
 ---
