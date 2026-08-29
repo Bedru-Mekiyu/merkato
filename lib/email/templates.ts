@@ -47,6 +47,10 @@ function base(title: string, content: string): string {
     .replace("{{YEAR}}", new Date().getFullYear().toString());
 }
 
+function cleanSubject(value: string): string {
+  return value.replace(/<[^>]*>/g, "").replace(/[\r\n\t]+/g, " ").trim();
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -76,7 +80,7 @@ export function invitationEmail(params: {
   inviteUrl: string;
 }): { subject: string; html: string } {
   return {
-    subject: `${params.inviterName} invited you to ${params.orgName} on Merkato`,
+    subject: `${cleanSubject(params.inviterName)} invited you to ${cleanSubject(params.orgName)} on Merkato`,
     html: base(
       `Join ${params.orgName} on Merkato`,
       `<div class="card">
@@ -149,7 +153,7 @@ export function newTicketEmail(params: {
   orgName: string;
 }): { subject: string; html: string } {
   return {
-    subject: `[${params.orgName}] New support request: ${params.subject}`,
+    subject: `[${cleanSubject(params.orgName)}] New support request: ${cleanSubject(params.subject)}`,
     html: base(
       "New support request",
       `<div class="card">
@@ -174,7 +178,7 @@ export function ticketReplyEmail(params: {
   orgName: string;
 }): { subject: string; html: string } {
   return {
-    subject: `Re: ${params.subject} — ${params.orgName} support`,
+    subject: `Re: ${cleanSubject(params.subject)} — ${cleanSubject(params.orgName)} support`,
     html: base(
       `Re: ${params.subject}`,
       `<div class="card">
@@ -197,7 +201,7 @@ export function taskAssignedEmail(params: {
   projectUrl: string;
 }): { subject: string; html: string } {
   return {
-    subject: `You were assigned a task: "${params.taskTitle}"`,
+    subject: `You were assigned a task: "${cleanSubject(params.taskTitle)}"`,
     html: base(
       "Task assigned",
       `<div class="card">
@@ -222,7 +226,7 @@ export function weeklyDigestEmail(params: {
   appUrl: string;
 }): { subject: string; html: string } {
   return {
-    subject: `Your Merkato weekly summary — ${params.orgName}`,
+    subject: `Your Merkato weekly summary — ${cleanSubject(params.orgName)}`,
     html: base(
       "Weekly summary",
       `<div class="card">

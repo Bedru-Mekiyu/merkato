@@ -24,6 +24,8 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+let toastCounter = 0;
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -31,7 +33,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => setMounted(true), []);
 
   const notify = useCallback((message: string, variant: ToastVariant = "success") => {
-    const id = Date.now() + Math.random();
+    const id = ++toastCounter;
     setToasts((prev) => [...prev, { id, message, variant }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));

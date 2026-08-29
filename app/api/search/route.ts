@@ -1,16 +1,11 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
-import type { SearchResultsGroup } from "@/lib/search";
+import { sanitizeSearchQuery, type SearchResultsGroup } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
 const LIMIT_PER_TYPE = 4;
-
-/** PostgREST filter values can't contain reserved characters — keep it simple. */
-function sanitize(q: string): string {
-  return q.replace(/[,()%\\]/g, " ").trim();
-}
 
 /**
  * Workspace-wide search across CRM, Projects, Knowledge Base and Support.
@@ -18,7 +13,7 @@ function sanitize(q: string): string {
  * caller's organization at the database level.
  */
 export async function GET(request: NextRequest) {
-  const q = sanitize(request.nextUrl.searchParams.get("q") ?? "");
+  const q = sanitizeSearchQuery(request.nextUrl.searchParams.get("q") ?? "");
 
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
