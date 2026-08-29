@@ -24,9 +24,9 @@ export interface ThemeDefinition {
 export const THEMES: ThemeDefinition[] = [
   {
     id: "moodle-cobalt",
-    name: "Moodle Cobalt",
-    category: "Royal Blue",
-    description: "Vibrant royal cobalt blue with golden amber accents & crisp high-contrast cards.",
+    name: "Cobalt Slate",
+    category: "Signature Dark",
+    description: "Deep obsidian slate with electric cobalt accents & crisp high-contrast cards.",
     primaryColor: "#2563eb",
     surfaceColor: "#0f172a",
     bgColor: "#090e1a",
@@ -34,31 +34,9 @@ export const THEMES: ThemeDefinition[] = [
     badgeTone: "sky",
   },
   {
-    id: "snow-light",
-    name: "Snow Light",
-    category: "Clean White",
-    description: "Crisp bright white canvas with high-contrast slate elements.",
-    primaryColor: "#ffffff",
-    surfaceColor: "#ffffff",
-    bgColor: "#f8fafc",
-    accentGradient: "from-blue-600 to-indigo-600",
-    badgeTone: "sky",
-  },
-  {
-    id: "midnight-dark",
-    name: "Midnight Dark",
-    category: "Pitch Black",
-    description: "Pure deep obsidian black with monochrome titanium highlights.",
-    primaryColor: "#000000",
-    surfaceColor: "#09090b",
-    bgColor: "#000000",
-    accentGradient: "from-zinc-100 to-zinc-400",
-    badgeTone: "indigo",
-  },
-  {
     id: "cyber-indigo",
     name: "Cyber Aurora",
-    category: "Futuristic Dark",
+    category: "Neon Indigo",
     description: "Deep obsidian with glowing indigo & violet neon highlights.",
     primaryColor: "#6366f1",
     surfaceColor: "#141418",
@@ -69,7 +47,7 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: "emerald-matrix",
     name: "Emerald Matrix",
-    category: "Neo-Mint & Forest",
+    category: "Jade & Mint",
     description: "Futuristic mint and emerald green over deep jade obsidian surfaces.",
     primaryColor: "#10b981",
     surfaceColor: "#0b1c15",
@@ -78,20 +56,9 @@ export const THEMES: ThemeDefinition[] = [
     badgeTone: "emerald",
   },
   {
-    id: "sunset-crimson",
-    name: "Sunset Crimson",
-    category: "Warm Cyberpunk",
-    description: "Rich rose velvet and purple neon with warm deep burgundy surfaces.",
-    primaryColor: "#f43f5e",
-    surfaceColor: "#1f0d16",
-    bgColor: "#0d0509",
-    accentGradient: "from-rose-500 via-pink-600 to-purple-600",
-    badgeTone: "amber",
-  },
-  {
     id: "nordic-frost",
     name: "Nordic Frost",
-    category: "Clean Minimal",
+    category: "Ice Titanium",
     description: "Crisp titanium slate with cyan ice glows and ultra-clean structure.",
     primaryColor: "#06b6d4",
     surfaceColor: "#111827",
@@ -123,13 +90,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(validTheme);
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", validTheme);
-      if (validTheme === "snow-light") {
-        document.documentElement.classList.remove("dark");
-        document.documentElement.classList.add("light");
-      } else {
-        document.documentElement.classList.remove("light");
-        document.documentElement.classList.add("dark");
-      }
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
       try {
         localStorage.setItem(THEME_STORAGE_KEY, validTheme);
       } catch {
