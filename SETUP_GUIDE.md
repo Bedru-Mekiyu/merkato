@@ -81,7 +81,7 @@ Once your project is ready:
 
 ### 2.3 Run the database migrations
 
-This is the most important step. You must run 11 SQL files in exact order.
+This is the most important step. You must run 14 SQL files in exact order.
 Each file creates the database tables Merkato needs.
 
 **How to run each file:**
@@ -110,6 +110,8 @@ Each file creates the database tables Merkato needs.
 | 9 | `009_notifications_schema.sql` | In-app notifications (real-time bell) |
 | 10 | `010_invitations_schema.sql` | Team invitation tokens |
 | 11 | `011_email_helpers.sql` | Email lookup functions for notifications |
+| 12 | `012_production_security_hardening.sql` | Production security hardening & RLS adjustments |
+| 13 | `013_remove_ambiguous_ticket_relationship.sql` | Schema refinement for support ticket relationships |
 
 > ⚠️ **Important — why 006 is split into two files:**
 > PostgreSQL has a rule: when you add a new value to a database enum type

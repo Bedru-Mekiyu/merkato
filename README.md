@@ -117,15 +117,12 @@ Merkato consolidates core startup operations into a **single relational graph**:
 - **Zero-Dependency SVG Charts**: Hand-rolled SVG line, bar, and donut charts for business revenue, team velocity, and ticket resolution.
 - **Live System Health Telemetry**: Real-time service latency probes (Postgres RLS, Supabase Auth, S3 Storage, Edge Runtime memory & uptime) with on-demand diagnostic pings.
 
-### 🎨 Minimalist 7-Theme Switcher
-- **Zero-Flash Color Engine**: Instant switching across 7 presets:
-  - `Moodle Cobalt` (Default Royal Blue)
-  - `Snow Light` (Crisp Pure White Canvas)
-  - `Midnight Dark` (Pitch Black Obsidian)
-  - `Cyber Aurora` (Neon Violet)
-  - `Emerald Matrix` (Neo-Mint)
-  - `Sunset Crimson` (Warm Rose)
-  - `Nordic Frost` (Cyan Ice)
+### 🎨 Minimalist High-Contrast Theme Switcher
+- **Zero-Flash Color Engine**: Instant switching across 4 curated high-contrast dark presets:
+  - `Cobalt Slate` (Default Obsidian Slate & Royal Blue)
+  - `Cyber Aurora` (Neon Indigo & Glowing Violet)
+  - `Emerald Matrix` (Jade Obsidian & Mint)
+  - `Nordic Frost` (Titanium Slate & Cyan Ice)
 - **Inline Circle Swatches**: Minimalist button-like circle swatches with live click latency benchmarking (`ms`).
 
 ---
@@ -532,7 +529,7 @@ Yes. All third-party services are architected with graceful degradation. If <cod
 
 <details>
 <summary><b>How do I change or customize themes?</b></summary>
-Click any of the circle swatches in the top navbar or footer to immediately switch between the 4 curated theme presets. Themes are defined via CSS variables in <code>app/globals.css</code> and configured in <code>lib/theme-context.tsx</code>.
+Click any of the circle swatches in the top navbar or footer to immediately switch between the 4 curated dark theme presets. Themes are defined via CSS variables in <code>app/globals.css</code> and configured in <code>lib/theme-context.tsx</code>.
 </details>
 
 ---
